@@ -1,27 +1,58 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Testing Installing click handlers to operators</title>
-    <link rel="stylesheet" href="static/mathquill.css"></link>
-    <link rel="stylesheet" href="static/arithmetic.css"></link>
+    <title>Arithmetic Game</title>
+    <link rel="stylesheet" href="static/arithmetic/mathquill.css"></link>
+    <link rel="stylesheet" href="static/arithmetic/arithmetic.css"></link>
     <link rel="stylesheet" href="static/vendor/jquery.alerts.css"></link>
   </head>
   <body>
-    <p id="clicktest" class="bigfont">
+    <div id="small-screen">
+      <div id="countdown" class="countdown-container">
 
-    </p>
-    <button id="next-button" class="bigfont hidden" tabindex="3">
-      Next
-    </button>
-    <script type="text/javascript" src="static/vendor/jquery-3.1.1.min.js"></script>
-    <script type="text/javascript" src="static/model/node.js"></script>
-    <script type="text/javascript" src="static/model/nodescanner.js"></script>
-    <script type="text/javascript" src="static/model/generatenewexpression.js"></script>
-    <script type="text/javascript" src="static/view/numbereditor.js"></script>
-    <script type="text/javascript" src="static/view/staticdigit.js"></script>
-    <script type="text/javascript" src="static/view/staticoperator.js"></script>
-    <script type="text/javascript" src="static/view/renderview.js"></script>
-    <script type="text/javascript" src="static/clicktest.js"></script>
-    <script type="text/javascript" src="static/vendor/jquery.alerts.js"></script>
+      </div>
+      <div id="game-container" class="centered">
+        <p id="math-container" class="bigfont">
+          
+        </p>
+        <button id="next-button" class="big-button-font hidden" tabindex="3">
+          Next
+        </button>
+      </div>
+      <div id="feedback" class="centered bigfont hidden">
+        <h2 id="feedback-title">Arithmetic Game</h2>
+        <p id="feedback-stats" class="hidden">
+
+        </p>
+        <p id="feedback-cheer" class="hidden">
+        
+        </p>
+      </div>
+      <div id="play-again" class="centered hidden">
+        <button class="big-button-font">
+          Play Again
+        </button>      
+      </div>
+      <div id="play" class="centered hidden">
+        <button class="big-button-font">
+          Play
+        </button>
+      </div>
+      <div id="quit" class="centered hidden">
+        <button class="big-button-font">
+          Quit
+        </button>
+      </div>
+      <script type="text/javascript" src="static/vendor/jquery-3.1.1.min.js"></script>
+      <script type="text/javascript" src="static/vendor/jquery.alerts.js"></script>
+      <script type="text/javascript" src="static/arithmetic/model/node.js"></script>
+      <script type="text/javascript" src="static/arithmetic/model/nodescanner.js"></script>
+      <script type="text/javascript" src="static/arithmetic/model/generatenewexpression.js"></script>
+      <script type="text/javascript" src="static/arithmetic/view/numbereditor.js"></script>
+      <script type="text/javascript" src="static/arithmetic/view/staticdigit.js"></script>
+      <script type="text/javascript" src="static/arithmetic/view/staticoperator.js"></script>
+      <script type="text/javascript" src="static/arithmetic/view/renderview.js"></script>
+      <script type="text/javascript" src="static/arithmetic/gameplay.js"></script>
   </body>
+  </div>
 </html>

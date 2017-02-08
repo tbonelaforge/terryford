@@ -1,0 +1,38 @@
+#small-screen {
+    width: 95%;
+}
+
+#game-container {
+    padding-top: 10px;
+}
+
+.clickable {
+    cursor: pointer;
+}
+
+.bigfont {
+    font-size: 175%;
+}
+
+.big-button-font {
+    font-size: 125%;
+}
+
+.hidden {
+    display: none;
+}
+
+.countdown-container {
+    float: right;
+    display: block;
+    font-size: 125%;
+}
+
+.centered {
+    clear: both;
+    text-align: center;
+}
+
+#quit {
+    margin-top: 10px;
+}

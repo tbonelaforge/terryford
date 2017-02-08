@@ -47,7 +47,7 @@ function updateDisplay() {
   var viewNodes = root.toViewNodes();
   var numberEditor = findNumberEditor(viewNodes);
   var view = renderView(viewNodes);
-  var container = document.getElementById('clicktest');
+  var container = document.getElementById('math-container');
   container.innerHTML = view;  
   $('.clickable').click(handleOperatorClick);
   return numberEditor;
@@ -106,6 +106,10 @@ var root = generateNewExpression();
 var editorElement = null;
 var cursorFlasher = null;
 var targetNode = null;
+var countdown = null;
+var timeLeft = 60;
+//var howManyExercises = 0;
+var howManyCorrect = 0;
 
 
 function flashCursor() {
@@ -115,8 +119,49 @@ function flashCursor() {
   }
   cursorFlasher = setInterval(function() {
     var cursorElement = $('#cursor');
-    $('#cursor').toggleClass('mq-blink');
+    
+      cursorElement.toggleClass('mq-blink');
   }, 500);
+}
+
+function resetTimeLeft() {
+  timeLeft = 60;
+}
+
+function padLeftZeros(number) {
+  var padding = "";
+
+  if (number < 10) {
+    padding = "0";
+  }
+  return padding + number;
+}
+
+function updateCountdownText() {
+  var countdownDiv = $('#countdown');
+  
+  countdownDiv.text("0:" + padLeftZeros(timeLeft));
+}
+
+function stopCountdown() {
+  clearInterval(countdown);
+  countdown = null;
+}
+
+function startCountdown() {
+  if (countdown != null) {
+    stopCountdown();
+  }
+  resetTimeLeft();
+  updateCountdownText();
+  countdown = setInterval(function() {
+    timeLeft -= 1;
+    if (timeLeft < 0) {
+      stopCountdown();
+      giveFeedback();
+    }
+    updateCountdownText();
+  }, 1000);
 }
 
 function startEditing(targetNode) {
@@ -164,6 +209,7 @@ function handleSubmission(numberEditor) {
       if (root.type == "number") {
         $('#next-button').show();
         $('#next-button').focus();
+        howManyCorrect += 1;
       }
       return;
     }
@@ -233,5 +279,83 @@ $('#next-button').click(function() {
   $('#next-button').hide();
 });
 
+$('#play-again').click(function() {
+  startGame();
+});
 
-resetDisplay();
+$('#play').click(function() {
+  startGame();
+});
+
+$('#quit').click(function() {
+  window.location = "/";
+});
+
+function showFeedback() {
+  if (howManyCorrect) {
+    $('#feedback-stats').text("You completed " + howManyCorrect + " exercises in 1 minute.");
+    $('#feedback-stats').show();
+    var feedbackCheer = computeFeedbackCheer(howManyCorrect);
+    
+    $('#feedback-cheer').text(feedbackCheer);
+    $('#feedback-cheer').show();
+    $('#play-again').show();
+    $('#quit').show();
+  } else {
+    $('#feedback-stats').hide();
+    $('#feedback-cheer').hide();
+    $('#play-again').hide();
+    $('#play').show();
+    $('#quit').show();
+  }
+  $('#feedback').show();
+}
+
+function computeFeedbackCheer(howManyCorrect) {
+  var feedbackCheer = "You can do mental arithmetic.";
+  if (howManyCorrect > 7 && howManyCorrect <= 14) {
+    feedbackCheer = "You are pretty good!";
+  } else if (howManyCorrect > 14 && howManyCorrect <= 21) {
+    feedbackCheer = "You are a star!";
+  } else {
+    feedbackCheer = "You are Ramanujan incarnate!";
+  }
+  return feedbackCheer;
+}
+
+function hideFeedback() {
+  $('#feedback').hide();
+  $('#play-again').hide();
+  $('#play').hide();
+  $('#quit').hide();
+}
+
+function showGame() {
+  $('#countdown').show();
+  $('#game-container').show();
+}
+
+function hideGame() {
+  $('#countdown').hide();
+  $('#game-container').hide();
+}
+
+function giveFeedback() {
+  hideGame();
+  showFeedback();
+}
+
+function startGame() {
+  root = generateNewExpression();
+  howManyCorrect = 0;
+  resetDisplay();
+  showGame();
+  $('#next-button').hide();
+  hideFeedback();
+  startCountdown();
+}
+
+//startGame();
+giveFeedback();
+//resetDisplay();
+//startCountdown();
