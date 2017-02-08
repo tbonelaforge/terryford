@@ -1,0 +1,11 @@
+.clickable {
+    cursor: pointer;
+}
+
+.bigfont {
+    font-size: 175%;
+}
+
+.hidden {
+    display: none;
+}
