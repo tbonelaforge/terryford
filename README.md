@@ -12,7 +12,9 @@ Setup Instructions
 3. Install the requirements:
 
     cd terryford
+
     virtualenv venv
+
     pip install -r requirements.txt
 
 4. Start the server:
