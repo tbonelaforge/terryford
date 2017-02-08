@@ -1,13 +1,12 @@
 Setup Instructions
 -----------------
-
-1. Ensure you have virtualenv installed: 
-
-    [sudo] pip install virtualenv
-
-2. Clone this project:
+1. Clone this project:
 
     git clone git@github.com:tbonelaforge/terryford.git
+
+2. Ensure you have virtualenv installed: 
+
+    [sudo] pip install virtualenv
 
 3. Install the requirements:
 
