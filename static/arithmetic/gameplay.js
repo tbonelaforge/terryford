@@ -317,7 +317,7 @@ function computeFeedbackCheer(howManyCorrect) {
     feedbackCheer = "You are pretty good!";
   } else if (howManyCorrect > 14 && howManyCorrect <= 21) {
     feedbackCheer = "You are a star!";
-  } else {
+  } else if (howManyCorrect > 21) {
     feedbackCheer = "You are Ramanujan incarnate!";
   }
   return feedbackCheer;
