@@ -33,6 +33,8 @@ node7.right = node9;
 NodeScanner.setStates(node7);
 */
 
+var DEBUG = false;
+
 
 function findNumberEditor(viewNodes) {
   for (var i = 0; i < viewNodes.length; i++) {
@@ -56,8 +58,7 @@ function updateDisplay() {
 function onKeyUp(numberEditor) {
   return function(event) {
     // Need Shift key
-
-    if (event.key == "Shift") {
+    if (event.keyCode == 16) { // Shift
       numberEditor.handleShiftKeyUp();
     } else {
       return;
@@ -69,13 +70,13 @@ function onKeyDown(numberEditor) {
   return function(event) {
     // Need Shift, left Arrow, Right Arrow, Delete
 
-    if (event.code == "ArrowRight") {
+    if (event.keyCode == 39) { // ArrowRight
       numberEditor.handleRightArrow();
-    } else if (event.code == "ArrowLeft") {
+    } else if (event.keyCode == 37) { // ArrowLeft
       numberEditor.handleLeftArrow();
-    } else if (event.key == "Shift") {
+    } else if (event.keyCode == 16) { // Shift
       numberEditor.handleShiftKeyDown();
-    } else if (event.key == "Backspace") {
+    } else if (event.keyCode == 8) {
       numberEditor.handleDelete();
     } else {
       return;
@@ -88,10 +89,11 @@ function onKeyPress(numberEditor) {
   return function(event) {
     // Need digits 0-9, Enter
 
-    if (event.key.match(/^\d$/)) {
-      var digit = parseInt(event.key);
+    if (event.keyCode >= 48 && event.keyCode <= 57) { // Digit 0-9
+      var digit = event.keyCode - 48;
       numberEditor.handleDigitInsert(digit);
-    } else if (event.key == "Enter") {
+    }
+    else if (event.keyCode == 13) { // Enter key.
       handleSubmission(numberEditor);
     } else {
       return;
@@ -108,7 +110,6 @@ var cursorFlasher = null;
 var targetNode = null;
 var countdown = null;
 var timeLeft = 60;
-//var howManyExercises = 0;
 var howManyCorrect = 0;
 
 
@@ -155,7 +156,9 @@ function startCountdown() {
   resetTimeLeft();
   updateCountdownText();
   countdown = setInterval(function() {
-    timeLeft -= 1;
+    if (!DEBUG) {
+      timeLeft -= 1;
+    }
     if (timeLeft < 0) {
       stopCountdown();
       giveFeedback();
@@ -250,8 +253,6 @@ function computeHintPosition(targetNode) {
     return null;
   }
 }
-
-//updateDisplay();
 
 // allow clicking out of editable area to go back to static display
 document.addEventListener('click', handleClickOutside, false);
@@ -355,7 +356,4 @@ function startGame() {
   startCountdown();
 }
 
-//startGame();
 giveFeedback();
-//resetDisplay();
-//startCountdown();
