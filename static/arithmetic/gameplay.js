@@ -58,6 +58,7 @@ function updateDisplay() {
 function onKeyUp(numberEditor) {
   return function(event) {
     // Need Shift key
+
     if (event.keyCode == 16) { // Shift
       numberEditor.handleShiftKeyUp();
     } else {
@@ -76,7 +77,8 @@ function onKeyDown(numberEditor) {
       numberEditor.handleLeftArrow();
     } else if (event.keyCode == 16) { // Shift
       numberEditor.handleShiftKeyDown();
-    } else if (event.keyCode == 8) {
+    } else if (event.keyCode == 8) { // Backspace
+      event.preventDefault(); // Prevent firefox from navigating back.
       numberEditor.handleDelete();
     } else {
       return;
@@ -92,8 +94,10 @@ function onKeyPress(numberEditor) {
     if (event.keyCode >= 48 && event.keyCode <= 57) { // Digit 0-9
       var digit = event.keyCode - 48;
       numberEditor.handleDigitInsert(digit);
-    }
-    else if (event.keyCode == 13) { // Enter key.
+    } else if (event.charCode >= 48 && event.charCode <= 57) { // Firefox digit 0-9
+      var digit = event.charCode - 48;
+      numberEditor.handleDigitInsert(digit);
+    } else if (event.keyCode == 13) { // Enter key.
       handleSubmission(numberEditor);
     } else {
       return;
