@@ -11,8 +11,6 @@ var Node = function () {
     this.id = ++idCounter;
   }
 
-
-
   Node.prototype.getOperatorCode = function() {
     if (this.value == '*') {
       return '&times;'
