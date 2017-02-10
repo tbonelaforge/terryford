@@ -34,9 +34,10 @@ NodeScanner.setStates(node7);
 */
 
 var DEBUG = false;
-
+var container = document.getElementById("math-container");
 var controller = new Controller({
-  root: generateNewExpression()
+  root: generateNewExpression(),
+  container: container
 });
 var countdown = null;
 var timeLeft = 60;

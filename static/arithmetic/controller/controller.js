@@ -1,5 +1,6 @@
 function Controller(options) {
   this.root = options.root;
+  this.container = options.container;
   this.editorElement = options.editorElement || null;
   this.cursorFlasher = options.cursorFlasher || null;
   this.targetNode = options.targetNode || null;
@@ -21,9 +22,8 @@ Controller.prototype = {
     var viewNodes = this.root.toViewNodes();
     var numberEditor = this.findNumberEditor(viewNodes);
     var view = renderView(viewNodes);
-    var container = document.getElementById('math-container');
-    container.innerHTML = view;  
-//    $('.clickable').click(handleOperatorClick);
+
+    this.container.innerHTML = view;  
     $('.clickable').click(function(e) {
       self.handleOperatorClick(e);
     });
