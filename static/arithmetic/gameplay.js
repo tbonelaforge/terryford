@@ -1,37 +1,3 @@
-/*
-var node6 = new Node({
-  type: "number",
-  value: 22
-});
-
-var node7 = new Node({
-  type: "operator",
-  value: '+'
-});
-
-var node8 = new Node({
-  type: "number",
-  value: 3
-});
-
-var node9 = new Node({
-  type: "operator",
-  value: '*'
-});
-
-var node10 = new Node({
-  type: "number",
-  value: 55
-});
-*/
-
-/*
-node9.left = node8;
-node9.right = node10;
-node7.left = node6; // node7 is root
-node7.right = node9;
-NodeScanner.setStates(node7);
-*/
 
 var DEBUG = false;
 var container = document.getElementById("math-container");
@@ -116,6 +82,10 @@ $('#quit').click(function() {
   window.location = "/";
 });
 
+$('#walkthrough').click(function() {
+  window.location = "/walkthrough/1";
+});
+
 function showFeedback() {
   if (howManyExercisesCorrect) {
     $('#feedback-stats').text("You completed " + howManyExercisesCorrect + " exercises in 1 minute.");
@@ -125,12 +95,14 @@ function showFeedback() {
     $('#feedback-cheer').text(feedbackCheer);
     $('#feedback-cheer').show();
     $('#play-again').show();
+    $('#walkthrough').show();
     $('#quit').show();
   } else {
     $('#feedback-stats').hide();
     $('#feedback-cheer').hide();
     $('#play-again').hide();
     $('#play').show();
+    $('#walkthrough').show();
     $('#quit').show();
   }
   $('#feedback').show();
@@ -152,6 +124,7 @@ function hideFeedback() {
   $('#feedback').hide();
   $('#play-again').hide();
   $('#play').hide();
+  $('#walkthrough').hide();
   $('#quit').hide();
 }
 

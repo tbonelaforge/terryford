@@ -5,6 +5,8 @@ function Controller(options) {
   this.cursorFlasher = options.cursorFlasher || null;
   this.targetNode = options.targetNode || null;
   this.correctCallback = options.correctCallback || null;
+  this.onSubmit = options.onSubmit || null;
+  this.operatorClickCallback = options.operatorClickCallback || null;
 };
 
 Controller.prototype = {
@@ -16,17 +18,25 @@ Controller.prototype = {
     }
     return null;
   },
-  
+  setOperatorClickCallback: function(operatorClickCallback) {
+    this.operatorClickCallback = operatorClickCallback;
+    $('.clickable').off('click');
+    $('.clickable').click(operatorClickCallback);
+  },
   updateDisplay: function() {
     var self = this;
     var viewNodes = this.root.toViewNodes();
     var numberEditor = this.findNumberEditor(viewNodes);
     var view = renderView(viewNodes);
+    var operatorCallback = this.operatorClickCallback;
 
-    this.container.innerHTML = view;  
-    $('.clickable').click(function(e) {
-      self.handleOperatorClick(e);
-    });
+    if (!operatorCallback) {
+      operatorCallback = function(e) {
+        self.handleOperatorClick(e);
+      };
+    }
+    this.container.innerHTML = view;
+    $('.clickable').click(operatorCallback);
     return numberEditor;
   },
 
@@ -78,8 +88,16 @@ Controller.prototype = {
         numberEditor.handleDigitInsert(digit);
       } else if (event.keyCode == 13) { // Enter key.
         var isSubmissionCorrect = self.handleSubmission(numberEditor);
+        if (self.onSubmit) {
+          self.onSubmit();
+        }
         if (isSubmissionCorrect) {
-          self.correctCallback();
+          if (self.correctCallback) {
+            self.correctCallback(numberEditor.parseBuffer());
+          } else {
+            console.log("No correct callback specified.");
+          }
+
         }
       } else {
         return;
@@ -101,6 +119,7 @@ Controller.prototype = {
   },
 
   startEditing: function(targetNode) {
+    this.targetNode = targetNode;
     this.targetNode.state = "editing";
     var numberEditor = this.updateDisplay();
     this.flashCursor();
@@ -114,7 +133,7 @@ Controller.prototype = {
   handleOperatorClick: function(e) {
     e.stopPropagation();
     var id = parseInt(e.target.getAttribute('id'));
-    this.targetNode = NodeScanner.findNodeById(this.root,id);
+    this.targetNode = NodeScanner.findNodeById(this.root, id);
     this.startEditing(this.targetNode);
   },
   
