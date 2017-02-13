@@ -120,13 +120,8 @@ NumberEditor.prototype.getSelectionRight = function() {
 
 NumberEditor.prototype.render = function() {
   var html = '<span class="mq-editable-field" id="editor" tabindex="0">';
-  html += this.renderBuffer();
-  html += '</span>';
-  return html;
-};
-
-NumberEditor.prototype.renderBuffer = function() {
-    for (var p = 0; p <= this.buffer.length; p++) {
+/*
+  for (var p = 0; p <= this.buffer.length; p++) {
     if (p == this.endPoint) {
       html += '<span class="mq-cursor" id="cursor">&#8203;</span>';
     }
@@ -140,6 +135,10 @@ NumberEditor.prototype.renderBuffer = function() {
       html += this.buffer[p].render();
     }
   }
+*/
+  html += this.renderBuffer();
+  html += '</span>';
+  return html;
 };
 
 NumberEditor.prototype.parseBuffer = function() {
@@ -153,4 +152,23 @@ NumberEditor.prototype.parseBuffer = function() {
     numString += viewNode.digit;
   }
   return parseInt(numString);
+};
+
+NumberEditor.prototype.renderBuffer = function() {
+  var html = "";
+  for (var p = 0; p <= this.buffer.length; p++) {
+    if (p == this.endPoint) {
+      html += '<span class="mq-cursor" id="cursor">&#8203;</span>';
+    }
+    if (this.selectionActive && this.getSelectionLeft() == p) {
+      html += '<span class="mq-selection">';
+    }
+    if (this.selectionActive && this.getSelectionRight() == p) {
+      html += '</span>';
+    }
+    if (p < this.buffer.length) {
+      html += this.buffer[p].render();
+    }
+  }
+  return html;
 };
