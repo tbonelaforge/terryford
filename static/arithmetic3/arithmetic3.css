@@ -1,0 +1,50 @@
+.centered {
+    text-align: center;
+}
+
+#math-container {
+    display: inline-block;
+    text-align: left;
+}
+
+.bigfont {
+    font-size: 175%;
+}
+
+.clickable {
+    cursor: pointer;
+}
+
+.answer {
+    display: inline-block;
+    min-width: 5em;
+    border: 1px solid grey;
+    padding: 3px;
+}
+
+.answer-box {
+    display: inline-block;
+    min-width: 5em;
+    border: 1px solid grey;
+    padding: 3px;
+}
+
+#check-mark {
+    visibility: hidden;
+}
+
+.big-button-font {
+    font-size: 125%;
+}
+
+.hidden {
+    display: none;
+}
+
+#next-button {
+    display: block;
+    margin-top: 25px;
+    margin-left: auto;
+    margin-bottom: auto;
+    margin-right: auto;
+}
