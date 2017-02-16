@@ -194,6 +194,12 @@ Controller.prototype = {
     self.clickHandler = clickHandler;
   },
 
+  detachDocumentClickHandler: function() {
+    if (this.clickHandler) {
+      $(document).off("click", this.clickHandler);
+    }
+  },
+
   listenForEditorEvents: function() {
     var self = this;
     var numberEditor = self.findNumberEditor();

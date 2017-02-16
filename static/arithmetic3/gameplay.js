@@ -173,6 +173,7 @@ function updateView() {
     startCountdown();
   } else if (gameState == "feedback") {
     controller.removeHint();
+    controller.detachDocumentClickHandler();
     showTitle();
     hideGame();
     showFeedback();
@@ -188,12 +189,6 @@ controller = new Controller({
     handleFinalAnswer();
   }
 });
-
-//
-
-
-/* Generate the view (including flashing cursor + focus) from the viewNod
-es...*/
 
 
 attachClickHandlers();
