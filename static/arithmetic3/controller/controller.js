@@ -7,6 +7,7 @@ function Controller(options) {
   this.viewNodes = options.viewNodes;
   this.cursorFlasher = options.cursorFlasher;
   this.finalAnswerCallback = options.finalAnswerCallback;
+  this.clickHandler = options.clickHandler;
 }
 Controller.prototype = {
   initializeTargets: function() {
@@ -25,7 +26,7 @@ Controller.prototype = {
     }
     this.currentTargetIndex = this.targets.length - 1;
     if (this.currentTargetIndex >= 0) {
-      this.targets[this.currentTargetIndex].state = 'editing';      
+      this.getCurrentTarget().state = 'editing';
     }
   },
   
@@ -47,7 +48,7 @@ Controller.prototype = {
     $('#math-container').html(view);
     this.viewNodes = viewNodes;
     this.attachKeyboardHandlers();
-    this.attachClickHandler();
+    this.attachClickHandlers();
     this.listenForEditorEvents();
     this.flashCursor();
     this.focusCurrentTarget();
@@ -57,8 +58,7 @@ Controller.prototype = {
     if (this.currentTargetIndex < 0) {
       return;
     }
-    var editorNode = this.targets[this.currentTargetIndex];
-    var editorElement = $('#' + editorNode.id);
+    var editorElement = this.getEditorElement();
     var numberEditor = this.findNumberEditor();
 
     if (numberEditor) {
@@ -79,14 +79,12 @@ Controller.prototype = {
   },
 
   focusCurrentTarget: function() {
-    if (this.currentTargetIndex < 0) {
+    var currentTarget = this.getCurrentTarget();
+
+    if (!currentTarget) {
       return;
     }
-    var currentTarget = this.targets[this.currentTargetIndex];
-    var currentTargetId = currentTarget.id;
-    var targetSelector = '#' + currentTargetId;
-    
-    $(targetSelector).focus();
+    $('#' + currentTarget.id).focus();
   },
 
   showNextTarget: function() {
@@ -120,7 +118,7 @@ Controller.prototype = {
   setTargetIndex: function(newTargetIndex) {
     if (this.currentTargetIndex != undefined 
         && this.currentTargetIndex != null) {
-      this.targets[this.currentTargetIndex].state = 'static';
+      this.getCurrentTarget().state = 'static';
     }
     this.targets[newTargetIndex].state = 'editing';
     this.currentTargetIndex = newTargetIndex;
@@ -133,6 +131,7 @@ Controller.prototype = {
   },
   
   showNewTargetById: function(targetId) {
+    this.removeHint();
     this.setTargetId(targetId);
     this.updateView();
   },
@@ -145,27 +144,54 @@ Controller.prototype = {
     if (this.currentTargetIndex < 0) {
       return;
     }
-    var editorNode = this.targets[this.currentTargetIndex];
-    var editorElement = $('#' + editorNode.id);
+    var editorElement = this.getEditorElement();
     var numberEditor = this.findNumberEditor();
-
 
     editorElement.keypress(this.onKeyPress(numberEditor));
     editorElement.keydown(this.onKeyDown(numberEditor));
     editorElement.keyup(this.onKeyUp(numberEditor));
   },
 
-  attachClickHandler: function() {
-    var self = this;
+  attachClickHandlers: function() {
+    this.attachEditorClickHandler();
+    this.attachDocumentClickHandler();
+  },
 
-    $(document).click(function(event) {
-      console.log("Inside the click handler, got called with event:\n");
-      console.log(event);
+  attachEditorClickHandler: function() {
+    var self = this;
+    var editorElement = self.getEditorElement();
+
+    if (!editorElement) {
+      return;
+    }
+    editorElement.click(function(event) {
+      event.stopPropagation();
+      if (self.getHintState() == 'none') {
+        return;
+      }
+      self.removeHint();
+      self.updateView();
+    });
+  },
+
+  attachDocumentClickHandler: function() {
+    var self = this;
+    if (self.clickHandler) {
+      return;
+    }
+    var clickHandler = function(event) {
+      if (self.targets.length == 0) {
+        return;
+      }
       var targetId = event.target.getAttribute('id');
       if (self.hasTargetId(targetId)) {
         self.showNewTargetById(targetId);
+      } else { // Clicking outside of any given target.
+        self.handleClickOutside();
       }
-    });
+    };
+    $(document).click(clickHandler);
+    self.clickHandler = clickHandler;
   },
 
   listenForEditorEvents: function() {
@@ -196,6 +222,7 @@ Controller.prototype = {
         editor.handleDigitInsert(digit);
         self.updateEditorView(editor);
       } else if (event.keyCode == 13) { // Enter key.
+        event.stopPropagation();
         self.handleEnter();
       } else { // unrecognized key press.
         return;
@@ -239,7 +266,13 @@ Controller.prototype = {
   },
 
   handleEnter: function() {
-    console.log("Inside Controller.handleEnter, got called!\n");
+    var self = this;
+
+    if (self.getEditingState() == 'subexpression' && self.getHintState() == 'none') {
+      self.showSubexpressionHint();
+    } else if (self.getEditingState() == 'answer' && self.getHintState() == 'none') {
+      self.showAnswerHint();
+    }
   },
 
   findNumberEditor: function() {
@@ -265,7 +298,7 @@ Controller.prototype = {
   },
 
   handleCorrect: function(value) {
-    var editorNode = this.targets[this.currentTargetIndex];
+    var editorNode = this.getCurrentTarget();
 
     if (editorNode.type == "answer") {
       editorNode.state = 'static';
@@ -292,5 +325,154 @@ Controller.prototype = {
 
   setFinalAnswerCallback: function(callback) {
     this.finalAnswerCallback = callback;
+  },
+
+  // Compute editing state:
+  // Can be 'answer', or  'subexpression'
+  getEditingState: function() {
+    if (this.currentTargetIndex == (this.targets.length - 1)) {
+      return 'answer';
+    } else {
+      return 'subexpression';
+    }
+  },
+
+  // Compute hint state:
+  // Can be 'hint' or 'none'
+  getHintState: function() {
+    var popupJQ = $('#popup_container');
+
+    return ( popupJQ.length > 0 ) ? 'hint' : 'none';
+  },
+
+  handleClickOutside: function() {
+    var self = this;
+
+    if (self.getEditingState() == 'answer' && self.getHintState() == 'none') {
+      self.showAnswerHint();
+    } else if (self.getEditingState() == 'answer' && self.getHintState() == 'hint') {
+      // Do nothing, until they show signs of acknowledgement.
+    } else if (self.getEditingState() == 'subexpression' && self.getHintState() == 'none') {
+      self.showSubexpressionHint();
+    } else if (self.getEditingState() == 'subexpression' && self.getHintState() == 'hint') {
+      // Do nothing, until they show signs of acknowledgement.
+    } else {
+      console.log(
+        "Cannot handle click outside: unrecognized (editingState, hintState): (%s, %s)",
+        self.getEditingState(),
+        self.getHintState()
+      );
+    }
+  },
+
+  showAnswerHint: function() {
+    var self = this;
+    var expressionRoot = self.root.left;
+    var hintString = expressionRoot.getHint();
+    var hintTitle = (self.findNumberEditor().buffer.length) ? 'Incorrect' : 'Hint';
+    var hintPosition = self.computeHintPosition();
+    var callback;
+
+    if (self.targets.length > 1) { // subexpression available
+      self.addCalloutArrows();
+      callback = function() {
+        self.removeCalloutArrows();
+        self.updateView();
+      }
+    } else {
+      callback = function() {
+        self.updateView();
+      }
+    }
+
+    jAlert(hintString, hintTitle, callback);
+    if (hintPosition) {
+      $('#popup_container').css({
+        top: hintPosition.top + 'px',
+        left: hintPosition.left + 'px'
+      });
+    }
+  },
+
+  showSubexpressionHint: function() {
+    var self = this;
+    var targetNode = this.getCurrentTarget();
+    var hintString = targetNode.getHint();
+
+    jAlert(hintString, 'Incorrect', function() {
+      self.updateView();
+    });
+    var hintPosition = this.computeHintPosition();
+    if (hintPosition) {
+      $('#popup_container').css({
+        top: hintPosition.top + 'px',
+        left: hintPosition.left + 'px'
+      });
+    } else {
+      console.log("Unable to compute hint position...\n");
+    }
+  },
+
+  computeHintPosition: function() {
+    var targetNode = this.getCurrentTarget();
+    var position = this.computeCalloutPosition(targetNode);
+
+    position.top = position.top + 8; // Account for the alert border + margin
+    return position;
+  },
+
+  computeCalloutPosition: function(node) {
+    var nodeJQ = $('#' + node.id);
+
+    if (nodeJQ.length) {
+      var originalPosition = nodeJQ.position();
+      var height = nodeJQ.height();
+      return {
+        top: originalPosition.top + height,
+        left: originalPosition.left
+      }
+    } else {
+      return null;
+    }
+  },
+
+  addCalloutArrows: function() {
+    for (var i = 0; i <= this.targets.length - 2; i++) {
+      var targetNode = this.targets[i];
+      var arrowPosition = this.computeCalloutPosition(targetNode);
+      var arrowElement = $('<div class="up-triangle bounce">');
+
+      arrowElement.css({
+        top: arrowPosition.top + 'px',
+        left: (arrowPosition.left + 13) + 'px'
+      });
+      $('body').append(arrowElement);
+    }
+  },
+
+  removeHint: function() {
+    $('#popup_container').remove();
+    this.removeCalloutArrows();
+  },
+
+  removeCalloutArrows: function() {
+    $('.up-triangle').remove();
+  },
+
+  getCurrentTarget: function() {
+    if (this.targets.length && this.currentTargetIndex >= 0) {
+      return this.targets[this.currentTargetIndex];
+    } else {
+      return null;
+    }
+  },
+
+  getEditorElement: function() {
+    var editorNode = this.getCurrentTarget();
+
+    if (!editorNode) {
+      return null;
+    }
+    return $('#' + editorNode.id);
   }
 };

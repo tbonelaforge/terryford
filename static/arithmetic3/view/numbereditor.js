@@ -201,8 +201,6 @@ NumberEditor.prototype = {
 
   checkCorrectness: function() {
     var bufferValue = this.parseBuffer();
-    console.log("Inside checkCorrectness, got called...\n");
-    console.log("The bufferValue is: %d, vs. a goal of: %d\n", bufferValue, this.goal);
 
     if (bufferValue != null && bufferValue == this.goal) {
       if (this.correctCallback) {

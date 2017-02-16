@@ -1,73 +1,13 @@
 // Gameplay state
 
-var node1 = new Node({
-  id: 1,
-  type: "number",
-  value: 22
-});
-
-var node2 = new Node({
-  id: 2,
-  type: "operator",
-  value: '*'
-});
-
-var node3 = new Node({
-  id: 3,
-  type: "number",
-  value: 3
-});
-
-var node4 = new Node({
-  id: 4,
-  type: "operator",
-  value: '+'
-});
-
-var node5 = new Node({
-  id: 5,
-  type: "number",
-  value: 4
-});
-
-var node6 = new Node({
-  id: 6,
-  type: "operator",
-  value: '*'
-});
-
-var node7 = new Node({
-  id: 7,
-  type: "number",
-  value: 5
-});
-
-var node8 = new Node({
-  id: 8,
-  type: "operator",
-  value: "="
-});
-
-var node9 = new Node({
-  id: 9,
-  type: "answer",
-  value: 86
-});
-
-node2.left = node1;
-node2.right = node3;
-node6.left = node5;
-node6.right = node7;
-node4.left = node2;
-node4.right = node6;
-node8.left = node4;
-node8.right = node9;
 
 var controller;
 var gameState = 'title-screen';
 var countdown = null;
 var timeLeft = 60;
 var howManyExercisesCorrect = 0;
+
+var DEBUG=false;
 
 // Gameplay methods:
 function handleFinalAnswer() {
@@ -88,10 +28,12 @@ function attachClickHandlers() {
     $('#next-button').hide();
   });
   $('#play').click(function(event) {
+    event.stopPropagation();
     gameState = 'playing-game';
     updateView();
   });
   $('#play-again').click(function(event) {
+    event.stopPropagation();
     gameState = 'playing-game';
     howManyExercisesCorrect = 0;
     updateView();
@@ -178,7 +120,9 @@ function startCountdown() {
   resetTimeLeft();
   updateCountdownText();
   countdown = setInterval(function() {
-    timeLeft -= 1;
+    if (!DEBUG) {
+      timeLeft -= 1;
+    }
     if (timeLeft <= 0) {
       stopCountdown();
       giveFeedback();
@@ -228,6 +172,7 @@ function updateView() {
     controller.updateView();
     startCountdown();
   } else if (gameState == "feedback") {
+    controller.removeHint();
     showTitle();
     hideGame();
     showFeedback();
@@ -238,7 +183,7 @@ function updateView() {
 
 
 controller = new Controller({
-  root: node8,
+  root: generateNewExercise(),
   finalAnswerCallback: function() {
     handleFinalAnswer();
   }

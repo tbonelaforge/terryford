@@ -85,7 +85,7 @@ Node.prototype = {
   toEditor: function(editorState) {
     var bufferContents = this.toBufferContents();
     var goal = this.evaluate();
-    console.log("Inside toEditor, got a goal of...%d\n", goal);
+
     return new NumberEditor({
       id: this.id,
       type: (this.type == 'answer') ? 'answer' : 'subexpression',
@@ -153,6 +153,50 @@ Node.prototype = {
       console.log("Cannot evaluate Unknown node type: %s\n", this.type);
       return null;
     }
+  },
+
+  getHint: function() {
+    var description = this.describeOperation();
+
+    if (description == null) {
+      return null;
+    }
+    if (this.left.type != "number" || this.right.type != "number") {
+      return "Enter the final answer or try a simpler expression first.";
+    }
+    var hint = "Try " + description.full + " "
+      + this.left.value + " " + description.brief + " " + this.right.value;
+    return hint;
+  },
+
+  describeOperation: function() {
+    if (this.type != "operator") {
+      console.log("Can't describe operation for node of type %s \n", this.type);
+      return null;
+    }
+    if (this.value == "*") {
+      return {
+        full: "multiplying",
+        brief: "times"
+      };
+    } else if (this.value == "+") {
+      return {
+        full: "adding",
+        brief: "plus"
+      }
+    } else {
+      console.log("Unknown operator: %s", this.value);
+      return null;
+    }
+  },
+
+  print: function() {
+    var text;
+    var leftText = (this.left) ? this.left.print() : "";
+    var rightText = (this.right) ? this.right.print() : "";
+
+    text = leftText + ("" + this.value) + rightText;
+    return text;
   }
 }
   
