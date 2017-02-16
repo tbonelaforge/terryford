@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Arithmetic3 Game</title>
+    <link rel="stylesheet" href="static/arithmetic3/mathquill.css"></link>
+    <link rel="stylesheet" href="static/arithmetic3/arithmetic3.css"></link>
+    <link rel="stylesheet" href="static/vendor/jquery.alerts.css"></link>
+  </head>
+  <body>
+    <div id="small-screen">
+      <div id="countdown" class="countdown-container">
+        <!-- Seconds left goes in here. -->
+      </div>
+      <div id="game-container" class="centered">
+        <span id="math-container" class="bigfont">
+          <!-- Generated Math Content goes in here -->
+        </span>
+        <span id="check-mark">
+          <img src="static/img/check.png" width="25px;"></img>
+        </span>
+        <button id="next-button" class="big-button-font hidden" tabindex="1" style="display:none;">Next</button>
+      </div>
+      <div id="title" class="centered bigfont">
+        <h2>Arithmetic Game</h2>
+      </div>
+      <div id="feedback" class="centered bigfont hidden">
+        <p id="feedback-stats" class="hidden">
+          <!-- Number of exercises correct goes here -->
+        </p>
+        <p id="feedback-cheer" class="hidden">
+          <!-- Encouraging text goes here -->
+        </p>
+      </div>
+      <div id="play" class="centered hidden">
+        <button class="big-button-font">
+          Play
+        </button>
+      </div>
+      <div id="play-again" class="centered hidden">
+        <button class="big-button-font">
+          Play Again
+        </button>
+      </div>
+    </div>
+    <script type="text/javascript" src="static/vendor/jquery-3.1.1.js"></script>
+    <script type="text/javascript" src="static/vendor/jquery.alerts.js"></script>
+    <script type="text/javascript" src="static/arithmetic3/view/staticoperator.js"></script>
+    <script type="text/javascript" src="static/arithmetic3/view/staticdigit.js"></script>
+    <script type="text/javascript" src="static/arithmetic3/view/staticanswer.js"></script>
+    <script type="text/javascript" src="static/arithmetic3/view/numbereditor.js"></script>
+    <script type="text/javascript" src="static/arithmetic3/view/renderview.js"></script>
+    <script type="text/javascript" src="static/arithmetic3/model/node.js"></script>
+    <script type="text/javascript" src="static/arithmetic3/model/generatenewexercise.js"></script>
+    <script type="text/javascript" src="static/arithmetic3/controller/expressionscanner.js"></script>
+    <script type="text/javascript" src="static/arithmetic3/controller/controller.js"></script>
+    <script type="text/javascript" src="static/arithmetic3/gameplay.js"></script>
+  </body>
+</html>
