@@ -197,6 +197,7 @@ Controller.prototype = {
   detachDocumentClickHandler: function() {
     if (this.clickHandler) {
       $(document).off("click", this.clickHandler);
+      this.clickHandler = null;
     }
   },
 
