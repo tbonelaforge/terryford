@@ -6,6 +6,7 @@ function Node(options) {
   this.left = options.left || null;
   this.right = options.right || null;
   this.displayStaticValue = options.displayStaticValue || false;
+  this.depth = options.depth;
 }
 
 Node.prototype = {
@@ -43,7 +44,8 @@ Node.prototype = {
       return [
         new StaticOperator({
           id: this.id,
-          value: this.value
+          value: this.value,
+          depth: this.depth
         })
       ];
     } else if (this.type == "answer") {

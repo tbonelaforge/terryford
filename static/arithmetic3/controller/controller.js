@@ -8,13 +8,18 @@ function Controller(options) {
   this.cursorFlasher = options.cursorFlasher;
   this.finalAnswerCallback = options.finalAnswerCallback;
   this.clickHandler = options.clickHandler;
+  this.expressionDepth = options.expressionDepth;
 }
 Controller.prototype = {
   initializeTargets: function() {
     if (this.root.right.displayStaticValue) { // Final Answer showing
       this.targets = [];
+      this.expressionDepth = ExpressionScanner.getMaxDepth(this.root.left);
     } else {
-      this.targets = ExpressionScanner.getTargets(this.root.left);
+      var expressionScanner = new ExpressionScanner();
+      expressionScanner.scan(this.root.left);
+      this.targets = expressionScanner.targets;
+      this.expressionDepth = expressionScanner.maxDepth;
       this.targets.push(this.root.right); // Editable AnswerNode
     }
     this.targetsById = {};
@@ -71,7 +76,7 @@ Controller.prototype = {
     html += '<span class="mq-math-mode"><span class="mq-root-block">';
     for (var i = 0; i < viewNodes.length; i++) {
       var viewNode = viewNodes[i];
-      var view = viewNode.render(this.targetsById);
+      var view = viewNode.render(this.targetsById, this.expressionDepth);
       html += view;
     }
     html += '</span></span>';

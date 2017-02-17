@@ -11,11 +11,12 @@ ExpressionScanner.prototype.scan = function() {
   if (!node) {
     return;
   }
+  node.depth = depth;
   if (node.type == 'operator') {
-    if (depth == maxDepth) {
+    if (depth == this.maxDepth) {
       this.targets.push(node);
-    } else if (depth > maxDepth) {
-      this.targets = [node]; // Reset.
+    } else if (depth > this.maxDepth) {
+      this.targets = [node];
       this.maxDepth = depth;
     }
   }
@@ -28,3 +29,21 @@ ExpressionScanner.getTargets = function(node) {
   expressionScanner.scan(node);
   return expressionScanner.targets;
 }
+
+ExpressionScanner.getMaxDepth = function(node) {
+  var expressionScanner = new ExpressionScanner();
+  expressionScanner.scan(node);
+  return expressionScanner.maxDepth;
+};
+
+ExpressionScanner.replace = function(node, target, replacement) {
+  if (!node) {
+    return null;
+  }
+  if (node == target) {
+    return replacement;
+  }
+  node.left = ExpressionScanner.replace(node.left, target, replacement);
+  node.right = ExpressionScanner.replace(node.right, target, replacement);
+  return node;
+};

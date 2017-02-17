@@ -54,20 +54,50 @@ function debugExercise() {
     type: "answer",
     value: 86
   });
+
+  var node10 = new Node({
+    id: 10,
+    type: "operator",
+    value: '*'
+  });
+
+  var node11 = new Node({
+    id: 11,
+    type: "number",
+    value: 11
+  });
   
+  var node12 = new Node({
+    id: 12,
+    type: "operator",
+    value: '+'
+  });
+
+  var node13 = new Node({
+    id: 13,
+    type: "number",
+    value: 13
+  });
+
+  node12.right = node13;
+  node12.left = node10;
+  node10.right = node11;
+  node10.left = node4;
   node2.left = node1;
   node2.right = node3;
   node6.left = node5;
   node6.right = node7;
   node4.left = node2;
   node4.right = node6;
-  node8.left = node4;
+//  node8.left = node4;
+//  node8.left = node10;
+  node8.left = node12;
   node8.right = node9;
   return node8;
 }
 
 function generateNewExercise() {
-//  return debugExercise();
+  //return debugExercise();
 
   // Build random expression
   var node1 = newRandomNumber(2, 5);
@@ -103,6 +133,7 @@ function generateNewExercise() {
 
   // Node6 is the exercise.
   return node6;
+
 }
 
 function newRandomNumber(low, high) {
