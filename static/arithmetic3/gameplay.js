@@ -27,18 +27,18 @@ function attachClickHandlers() {
     $('#check-mark').css({visibility: "hidden"});
     $('#next-button').hide();
   });
-  $('#play').click(function(event) {
+  $('#play-button').click(function(event) {
     event.stopPropagation();
     gameState = 'playing-game';
     updateView();
   });
-  $('#play-again').click(function(event) {
+  $('#play-again-button').click(function(event) {
     event.stopPropagation();
     gameState = 'playing-game';
     howManyExercisesCorrect = 0;
     updateView();
   });
-  $('#walkthrough').click(function(event) {
+  $('#walkthrough-button').click(function(event) {
     event.stopPropagation();
     window.location = "walkthrough/1";
   });
