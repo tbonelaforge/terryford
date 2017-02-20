@@ -4,7 +4,7 @@ function ExpressionScanner(options) {
 }
 
 ExpressionScanner.prototype.scan = function() {
-  var args = Array.from(arguments);
+  var args = Array.prototype.slice.call(arguments);
   var node = args.shift();
   var depth = args.length ? args.shift() : 1;
 
