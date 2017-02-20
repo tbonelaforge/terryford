@@ -113,8 +113,11 @@
           callback(true);
           });
         $("#popup_ok").focus().keypress( function(e) {
-          if( e.keyCode == 13 || e.keyCode == 27 ) $("#popup_ok").trigger('click');
-          });
+          if( e.keyCode == 13 || e.keyCode == 27 ) {
+            $("#popup_ok").trigger('click');
+          } else {
+          }
+        });
         break;
         case 'confirm':
         $("#popup_message").after('<div id="popup_panel"><input type="button" value="' + $.alerts.okButton + '" id="popup_ok" /> <input type="button" value="' + $.alerts.cancelButton + '" id="popup_cancel" /></div>');

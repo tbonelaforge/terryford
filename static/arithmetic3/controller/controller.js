@@ -198,7 +198,7 @@ Controller.prototype = {
       return;
     }
     var clickHandler = function(event) {
-      event.stopPropagation();
+      stopPropagation(event);
       if (self.getHintState() == 'none') {
         return;
       }
@@ -274,7 +274,8 @@ Controller.prototype = {
         editor.handleDigitInsert(digit);
         self.updateEditorView(editor);
       } else if (event.keyCode == 13) { // Enter key.
-        event.stopPropagation();
+        stopPropagation(event);
+        preventDefault(event);
         self.handleEnter();
       } else { // unrecognized key press.
         return;
@@ -293,7 +294,7 @@ Controller.prototype = {
       } else if (event.keyCode == 16) { // Shift
         editor.handleShiftKeyDown();
       } else if (event.keyCode == 8) { // Backspace
-        event.preventDefault(); // Prevent Firefox from navigating back
+        preventDefault(event);
         editor.handleDelete()
       } else if (event.keyCode == 9) { // Tab
         event.preventDefault(); // Ignore browser's tabindex behavior.
@@ -546,4 +547,20 @@ function extractOption(value, defaultValue) {
     return value;
   }
   return defaultValue;
+}
+
+function preventDefault(event) {
+  if (event.preventDefault) {
+    event.preventDefault();
+  } else {
+    event.returnValue = false;
+  }
+}
+
+function stopPropagation(event) {
+  if (event.stopPropagation) {
+    event.stopPropagation();
+  } else {
+    event.cancelBubble = true;
+  }
 }
