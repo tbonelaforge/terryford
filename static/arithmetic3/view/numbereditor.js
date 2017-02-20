@@ -164,7 +164,7 @@ NumberEditor.prototype = {
     var html = "";
     for (var p = 0; p <= this.buffer.length; p++) {
       if (p == this.endPoint) {
-        html += '<span class="mq-cursor" id="cursor">&#8203;</span>';
+        html += '<span class="mq-cursor mq-blink" id="cursor">&#8203;</span>';
       }
       if (this.selectionActive && this.getSelectionLeft() == p) {
         html += '<span class="mq-selection">';

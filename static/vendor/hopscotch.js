@@ -1006,7 +1006,7 @@
 
       // Override evt for IE8 as IE8 doesn't pass event but binds it to window
       evt = evt || window.event; // get window.event if argument is falsy (in IE)
-
+      evt.stopPropagation();
       // get srcElement if target is falsy (IE)
       var targetElement = evt.target || evt.srcElement;
 

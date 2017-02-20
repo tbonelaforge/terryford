@@ -105,3 +105,12 @@
     transform: translateY(20px);
   }
 }
+
+#game-container {
+    clear: both;
+    padding-top: 10px;
+}
+
+#walkthrough {
+    margin-top: 10px;
+}

@@ -7,21 +7,33 @@ function Controller(options) {
   this.viewNodes = options.viewNodes;
   this.cursorFlasher = options.cursorFlasher;
   this.finalAnswerCallback = options.finalAnswerCallback;
-  this.clickHandler = options.clickHandler;
+  this.subexpressionReplacedCallback = options.subexpressionReplacedCallback;
+  this.documentClickHandler = options.documentClickHandler;
   this.expressionDepth = options.expressionDepth;
+  this.shouldAttachKeyboardHandlers = extractOption(options.shouldAttachKeyboardHandlers, true);
+  this.shouldAttachEditorClickHandler = extractOption(options.shouldAttachEditorClickHandler, true);
+  this.shouldAttachDocumentClickHandler = extractOption(options.shouldAttachDocumentClickHandler, true);
+  this.shouldListenForEditorEvents = extractOption(options.shouldListenForEditorEvents, true);
+  this.shouldFlashCursor = extractOption(options.shouldFlashCursor, true);
+  this.shouldFocusCurrentTarget = extractOption(options.shouldFocusCurrentTarget, true);
 }
 Controller.prototype = {
   initializeTargets: function() {
     if (this.root.right.displayStaticValue) { // Final Answer showing
-      this.targets = [];
+      this.setTargets([]);
       this.expressionDepth = ExpressionScanner.getMaxDepth(this.root.left);
     } else {
       var expressionScanner = new ExpressionScanner();
       expressionScanner.scan(this.root.left);
-      this.targets = expressionScanner.targets;
+      var targets = expressionScanner.targets;
+      targets.push(this.root.right); // Editable Answer node.
+      this.setTargets(targets);
       this.expressionDepth = expressionScanner.maxDepth;
-      this.targets.push(this.root.right); // Editable AnswerNode
     }
+  },
+
+  setTargets: function(targets) {
+    this.targets = targets;
     this.targetsById = {};
     this.targetIndexesById = {};
     for (var i = 0; i < this.targets.length; i++) {
@@ -52,11 +64,20 @@ Controller.prototype = {
     
     $('#math-container').html(view);
     this.viewNodes = viewNodes;
-    this.attachKeyboardHandlers();
+    if (this.shouldAttachKeyboardHandlers) {
+      this.attachKeyboardHandlers();
+    }
     this.attachClickHandlers();
-    this.listenForEditorEvents();
-    this.flashCursor();
-    this.focusCurrentTarget();
+    if (this.shouldListenForEditorEvents) {
+      this.listenForEditorEvents();
+    }
+    if (this.shouldFlashCursor) {
+      this.flashCursor();
+    }
+    if (this.shouldFocusCurrentTarget) {
+      this.focusCurrentTarget();
+    } else {
+    }
   },
 
   updateEditorView: function() {
@@ -85,7 +106,6 @@ Controller.prototype = {
 
   focusCurrentTarget: function() {
     var currentTarget = this.getCurrentTarget();
-
     if (!currentTarget) {
       return;
     }
@@ -158,30 +178,50 @@ Controller.prototype = {
   },
 
   attachClickHandlers: function() {
-    this.attachEditorClickHandler();
-    this.attachDocumentClickHandler();
+    if (this.shouldAttachEditorClickHandler) {
+      this.attachEditorClickHandler();
+    }
+    if (this.shouldAttachDocumentClickHandler) {
+      this.attachDocumentClickHandler();
+    } else {
+    }
   },
 
   attachEditorClickHandler: function() {
+    if (this.editorClickHandler) {
+      return;
+    }
     var self = this;
     var editorElement = self.getEditorElement();
 
     if (!editorElement) {
       return;
     }
-    editorElement.click(function(event) {
+    var clickHandler = function(event) {
       event.stopPropagation();
       if (self.getHintState() == 'none') {
         return;
       }
       self.removeHint();
       self.updateView();
-    });
+    };
+    editorElement.click(clickHandler);
+    self.editorClickHandler = clickHandler;
+  },
+
+  detachEditorClickHandler: function() {
+    if (this.editorClickHandler) {
+      var editorElement = this.getEditorElement();
+
+      if (editorElement) {
+        editorElement.off('click', this.editorClickHandler);
+      }
+    }
   },
 
   attachDocumentClickHandler: function() {
     var self = this;
-    if (self.clickHandler) {
+    if (self.documentClickHandler) {
       return;
     }
     var clickHandler = function(event) {
@@ -196,13 +236,13 @@ Controller.prototype = {
       }
     };
     $(document).click(clickHandler);
-    self.clickHandler = clickHandler;
+    self.documentClickHandler = clickHandler;
   },
 
   detachDocumentClickHandler: function() {
-    if (this.clickHandler) {
-      $(document).off("click", this.clickHandler);
-      this.clickHandler = null;
+    if (this.documentClickHandler) {
+      $(document).off("click", this.documentClickHandler);
+      this.documentClickHandler = null;
     }
   },
 
@@ -332,6 +372,9 @@ Controller.prototype = {
       );
       this.initializeTargets();
       this.updateView();
+      if (this.subexpressionReplacedCallback) {
+        this.subexpressionReplacedCallback();
+      }
     }
   },
 
@@ -486,5 +529,21 @@ Controller.prototype = {
       return null;
     }
     return $('#' + editorNode.id);
+  },
+
+  cleanUp: function() {
+    if (this.cursorFlasher) {
+      clearInterval(this.cursorFlasher);
+    }
+    if (this.documentClickHandler) {
+      $(document).off("click", this.documentClickHandler);
+    }
   }
 };
+
+function extractOption(value, defaultValue) {
+  if (value !== undefined && value !== null) {
+    return value;
+  }
+  return defaultValue;
+}

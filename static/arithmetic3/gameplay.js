@@ -38,6 +38,10 @@ function attachClickHandlers() {
     howManyExercisesCorrect = 0;
     updateView();
   });
+  $('#walkthrough').click(function(event) {
+    event.stopPropagation();
+    window.location = "walkthrough/1";
+  });
 }
 
 function showGame() {
@@ -70,6 +74,14 @@ function showPlayAgainButton() {
 
 function hidePlayAgainButton() {
   $('#play-again').hide();
+}
+
+function showWalkthroughButton() {
+  $('#walkthrough').show();
+}
+
+function hideWalkthroughButton() {
+  $('#walkthrough').hide();
 }
 
 function getFeedbackStats() {
@@ -160,12 +172,14 @@ function updateView() {
     hideGame();
     showTitle();
     showPlayButton();
+    showWalkthroughButton();
     hidePlayAgainButton();
   } else if (gameState == "playing-game") {
     showGame();
     hideTitle();
     hidePlayButton();
     hidePlayAgainButton();
+    hideWalkthroughButton();
     hideFeedback();
     controller.root = generateNewExercise();
     controller.initializeTargets();
@@ -179,6 +193,7 @@ function updateView() {
     showFeedback();
     hidePlayButton();
     showPlayAgainButton();
+    showWalkthroughButton();
   }
 }
 

@@ -9,11 +9,6 @@ def home_page():
 
 @app.route('/arithmetic')
 def arithmetic_start_page():
-    html = render_template("arithmetic/game-container.html")
-    return html
-
-@app.route('/arithmetic3')
-def arithmetic2_start_page():
     html = render_template("arithmetic3/game-container.html")
     return html
 
@@ -23,5 +18,5 @@ def walkthrough():
 
 @app.route('/walkthrough/<walkthrough_step>')
 def walkthrough_page(walkthrough_step="1"):
-    html = render_template("arithmetic/walkthrough.html", step=walkthrough_step)
+    html = render_template("arithmetic3/walkthrough.html", step=walkthrough_step)
     return html
