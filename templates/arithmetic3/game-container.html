@@ -8,12 +8,32 @@
   </head>
   <body>
     <div id="small-screen">
+      <div id="level-container" class="centered hidden">
+        <div id="expert-level">
+          <button id="expert-button" class="big-button-font level-button">Expert</button>
+        </div>
+        <div id="mixed-expressions2-level">
+          <button id="mixed-expressions2-button" class="big-button-font level-button">Mixed Expressions 2</button>
+        </div>
+        <div id="mixed-expressions1-level">
+          <button id="mixed-expressions1-button" class="big-button-font level-button">Mixed Expressions 1</button>
+        </div>
+        <div id="basic-level">
+          <button id="basic-expressions-button" class="big-button-font level-button">Basic Expressions</button>
+          <button id="parentheses-button" class="big-button-font level-button">Parentheses</button>
+        </div>
+        <div id="foundation-level">
+          <button id="addition-button" class="big-button-font level-button">Addition</button>
+          <button id="multiplication-button" class="big-button-font level-button">Multiplication</button>
+        </div>
+      </div> <!-- End Level Container -->
       <div id="countdown" class="countdown-container">
-
+        
       </div>
+
       <div id="game-container" class="centered">
         <span id="math-container" class="bigfont">
-
+          
         </span>
         <span id="check-mark">
           <img src="static/img/check.png" width="25px;">
@@ -49,12 +69,15 @@
     </div>
     <script type="text/javascript" src="static/vendor/jquery-3.1.1.min.js"></script>
     <script type="text/javascript" src="static/vendor/jquery.alerts.js"></script>
+    <script type="text/javascript" src="static/arithmetic3/util.js"></script>
     <script type="text/javascript" src="static/arithmetic3/view/staticoperator.js"></script>
     <script type="text/javascript" src="static/arithmetic3/view/staticdigit.js"></script>
     <script type="text/javascript" src="static/arithmetic3/view/staticanswer.js"></script>
+    <script type="text/javascript" src="static/arithmetic3/view/staticparenthesis.js"></script>
     <script type="text/javascript" src="static/arithmetic3/view/numbereditor.js"></script>
     <script type="text/javascript" src="static/arithmetic3/view/renderview.js"></script>
     <script type="text/javascript" src="static/arithmetic3/model/node.js"></script>
+    <script type="text/javascript" src="static/arithmetic3/model/nodegenerator.js"></script>
     <script type="text/javascript" src="static/arithmetic3/model/generatenewexercise.js"></script>
     <script type="text/javascript" src="static/arithmetic3/model/expressionscanner.js"></script>
     <script type="text/javascript" src="static/arithmetic3/controller/controller.js"></script>

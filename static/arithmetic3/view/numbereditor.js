@@ -207,6 +207,16 @@ NumberEditor.prototype = {
         this.correctCallback(bufferValue);
       }
     }
+  },
+
+  parenthesizeBuffer: function() {
+    if (this.startPoint != 0 || this.endPoint != this.buffer.length) {
+      console.log("Cannot parenthesize buffer without select all");
+      return;
+    }
+    this.buffer.unshift(new StaticParenthesis({value: "("}));
+    this.buffer.push(new StaticParenthesis({value: ")"}));
+    this.endPoint = this.buffer.length;
   }
 };
 

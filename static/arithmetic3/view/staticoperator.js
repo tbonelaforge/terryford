@@ -50,20 +50,13 @@ StaticOperator.prototype = {
   },
 
   computeColor: function(expressionDepth) {
-    if (this.depth == undefined || this.depth == null) {
-      return null;
+    if (this.value == '+') {
+      return 'limegreen';
+    } else if (this.value == '*') {
+      return 'mediumvioletred';
+    } else {
+      console.log("Could not compute color: unrecognized operator %s", this.value);
     }
-    var colors = StaticOperator.colorsByDepth["" + expressionDepth];
-    var ratio = (this.depth - 1) / (expressionDepth - 1);
-    var r = ratio * (expressionDepth - 1);
-    var i = Math.ceil(r);
-
-    if (i > expressionDepth - 1) {
-      i = expressionDepth - 1;
-    }
-    i = expressionDepth - 1 - i;
-    var color = colors[i];
-    return color;
   }
 };
 

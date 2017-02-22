@@ -198,7 +198,7 @@ Controller.prototype = {
       return;
     }
     var clickHandler = function(event) {
-      stopPropagation(event);
+      util.stopPropagation(event);
       if (self.getHintState() == 'none') {
         return;
       }
@@ -274,8 +274,8 @@ Controller.prototype = {
         editor.handleDigitInsert(digit);
         self.updateEditorView(editor);
       } else if (event.keyCode == 13) { // Enter key.
-        stopPropagation(event);
-        preventDefault(event);
+        util.stopPropagation(event);
+        util.preventDefault(event);
         self.handleEnter();
       } else { // unrecognized key press.
         return;
@@ -294,10 +294,10 @@ Controller.prototype = {
       } else if (event.keyCode == 16) { // Shift
         editor.handleShiftKeyDown();
       } else if (event.keyCode == 8) { // Backspace
-        preventDefault(event);
+        util.preventDefault(event);
         editor.handleDelete()
       } else if (event.keyCode == 9) { // Tab
-        event.preventDefault(); // Ignore browser's tabindex behavior.
+        util.preventDefault(event);
         editor.handleTab();
       } else { // unrecognized key down
         return;
@@ -442,6 +442,9 @@ Controller.prototype = {
     }
 
     jAlert(hintString, hintTitle, callback);
+    $('#popup_container').keydown(function(event) {
+      noopTabHandler(event);
+    });
     if (hintPosition) {
       $('#popup_container').css({
         top: hintPosition.top + 'px',
@@ -457,6 +460,9 @@ Controller.prototype = {
 
     jAlert(hintString, 'Incorrect', function() {
       self.updateView();
+    });
+    $('#popup_container').keydown(function(event) {
+      noopTabHandler(event);
     });
     var hintPosition = this.computeHintPosition();
     if (hintPosition) {
@@ -549,18 +555,9 @@ function extractOption(value, defaultValue) {
   return defaultValue;
 }
 
-function preventDefault(event) {
-  if (event.preventDefault) {
-    event.preventDefault();
-  } else {
-    event.returnValue = false;
-  }
-}
-
-function stopPropagation(event) {
-  if (event.stopPropagation) {
-    event.stopPropagation();
-  } else {
-    event.cancelBubble = true;
+function noopTabHandler(event) {
+  if (event.keyCode == 9) {
+    stopPropagation(event);
+    preventDefault(event);
   }
 }

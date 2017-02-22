@@ -22,9 +22,15 @@ Node.prototype = {
     
     if (this.left) {
       left = this.left.toViewNodes(editorState);
+      if (this.shouldParenthesize(this.left)) {
+        left = this.parenthesizeViewNodes(left);
+      }
     }
     if (this.right) {
       right = this.right.toViewNodes(editorState);
+      if (this.shouldParenthesize(this.right)) {
+        right = this.parenthesizeViewNodes(right);
+      }
     }
     var theseViewNodes = this.toTheseViewNodes();
     viewNodes = left.concat(theseViewNodes, right);
@@ -68,16 +74,42 @@ Node.prototype = {
       console.log("Node of type %s Could not produce view nodes\n", this.type);
     }
   },
+
+  shouldParenthesize: function(node) {
+    if (this.type == "operator" && node.type == "operator") {
+      if (this.value == "*" && node.value == "+") {
+        return true;
+      }
+    }
+    return false;
+  },
   
+  parenthesizeViewNodes: function(viewNodes) {
+    if (viewNodes.length == 1 && (viewNodes[0] instanceof NumberEditor)) {
+      var numberEditor = viewNodes[0];
+      numberEditor.parenthesizeBuffer();
+      return viewNodes;
+    }
+    viewNodes.unshift(new StaticParenthesis({value: "("}));
+    viewNodes.push(new StaticParenthesis({value: ")"}));
+    return viewNodes;
+  },
+
   toBufferContents: function() {
     var left = [];
     var right = [];
     
     if (this.left) {
       left = this.left.toBufferContents();
+      if (this.shouldParenthesize(this.left)) {
+        left = this.parenthesizeViewNodes(left);
+      }
     }
     if (this.right) {
       right = this.right.toBufferContents();
+      if (this.shouldParenthesize(this.right)) {
+        right = this.parenthesizeViewNodes(right);
+      }
     }
     var thisBufferContent = this.toBufferContent();
     var bufferContents = left.concat(thisBufferContent, right);

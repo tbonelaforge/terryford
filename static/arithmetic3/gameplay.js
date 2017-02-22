@@ -9,6 +9,18 @@ var howManyExercisesCorrect = 0;
 
 var DEBUG=false;
 
+var difficulty;
+
+var difficulties = {
+  'addition-button': 'addition',
+  'multiplication-button': 'multiplication',
+  'basic-expressions-button': 'basic-expressions',
+  'parentheses-button': 'parentheses',
+  'mixed-expressions1-button': 'mixed-expressions1',
+  'mixed-expressions2-button': 'mixed-expressions2',
+  'expert-button': 'expert'
+};
+
 // Gameplay methods:
 function handleFinalAnswer() {
   $('#check-mark').css({visibility: "visible"});
@@ -20,7 +32,7 @@ function handleFinalAnswer() {
 function attachClickHandlers() {
   $('#next-button').click(function(event) {
     event.stopPropagation();
-    var newExercise = generateNewExercise();
+    var newExercise = generateNewExercise(difficulty);
     controller.root = newExercise;
     controller.initializeTargets();
     controller.updateView();
@@ -29,18 +41,30 @@ function attachClickHandlers() {
   });
   $('#play-button').click(function(event) {
     event.stopPropagation();
-    gameState = 'playing-game';
+    gameState = 'selecting-level';
     updateView();
   });
   $('#play-again-button').click(function(event) {
     event.stopPropagation();
-    gameState = 'playing-game';
+    gameState = 'selecting-level';
     howManyExercisesCorrect = 0;
     updateView();
   });
   $('#walkthrough-button').click(function(event) {
     event.stopPropagation();
     window.location = "walkthrough/1";
+  });
+  $('.level-button').click(function(event) {
+    util.stopPropagation(event);
+    console.log("Inside the level-button click handler, got called with event...\n");
+    console.log(event);
+    console.log("The id of the button is:\n");
+    console.log(event.target.getAttribute('id'));
+    var levelButtonId = event.target.getAttribute('id');
+    difficulty = difficulties[levelButtonId];
+    console.log("Just set the difficulty to %s", difficulty);
+    gameState = 'playing-game';
+    updateView();
   });
 }
 
@@ -82,6 +106,14 @@ function showWalkthroughButton() {
 
 function hideWalkthroughButton() {
   $('#walkthrough').hide();
+}
+
+function showLevels() {
+  $('#level-container').show();
+}
+
+function hideLevels() {
+  $('#level-container').hide();
 }
 
 function getFeedbackStats() {
@@ -174,6 +206,14 @@ function updateView() {
     showPlayButton();
     showWalkthroughButton();
     hidePlayAgainButton();
+    hideLevels();
+  } else if (gameState == "selecting-level") {
+    hideGame();
+    hideTitle();
+    hidePlayButton();
+    hideWalkthroughButton();
+    hidePlayAgainButton();
+    showLevels();
   } else if (gameState == "playing-game") {
     showGame();
     hideTitle();
@@ -181,7 +221,8 @@ function updateView() {
     hidePlayAgainButton();
     hideWalkthroughButton();
     hideFeedback();
-    controller.root = generateNewExercise();
+    hideLevels();
+    controller.root = generateNewExercise(difficulty);
     controller.initializeTargets();
     controller.updateView();
     startCountdown();
@@ -194,6 +235,7 @@ function updateView() {
     hidePlayButton();
     showPlayAgainButton();
     showWalkthroughButton();
+    hideLevels();
   }
 }
 

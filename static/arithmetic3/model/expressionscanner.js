@@ -12,15 +12,12 @@ ExpressionScanner.prototype.scan = function() {
     return;
   }
   node.depth = depth;
+  this.scan(node.left, depth + 1);
   if (node.type == 'operator') {
-    if (depth == this.maxDepth) {
+    if (depth >= this.maxDepth) {
       this.targets.push(node);
-    } else if (depth > this.maxDepth) {
-      this.targets = [node];
-      this.maxDepth = depth;
     }
   }
-  this.scan(node.left, depth + 1);
   this.scan(node.right, depth + 1);
 }
 
