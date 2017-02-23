@@ -317,7 +317,7 @@ Controller.prototype = {
       }
     };
   },
-
+  
   handleEnter: function() {
     var self = this;
 
@@ -556,8 +556,8 @@ function extractOption(value, defaultValue) {
 }
 
 function noopTabHandler(event) {
-  if (event.keyCode == 9) {
-    stopPropagation(event);
-    preventDefault(event);
+  if (event.keyCode == 9) { // Tab key
+    util.stopPropagation(event);
+    util.preventDefault(event);
   }
 }

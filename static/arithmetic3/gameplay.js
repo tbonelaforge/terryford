@@ -5,10 +5,13 @@ var controller;
 var gameState = 'title-screen';
 var countdown = null;
 var timeLeft = 60;
+var timeGiven;
 var howManyExercisesCorrect = 0;
 
 var DEBUG=false;
 
+// Can be addition, multiplication, basic-expressions, parentheses, 
+// mixed-expressions1, mixed-expressions2, or expert
 var difficulty;
 
 var difficulties = {
@@ -20,6 +23,51 @@ var difficulties = {
   'mixed-expressions2-button': 'mixed-expressions2',
   'expert-button': 'expert'
 };
+
+var scales = {
+  'addition': [10, 20, 29],
+  'multiplication': [10, 20, 29],
+  'basic-expressions': [10, 20, 29],
+  'parentheses': [10, 20, 29],
+  'mixed-expressions1': [10, 20, 29],
+  'mixed-expressions2': [9, 18, 25],
+  'expert': [8, 16, 23]
+};
+
+var levelsCompleted = {
+  'addition': false,
+  'multiplication': false,
+  'basic-expressions': false,
+  'parentheses': false,
+  'mixed-expressions1': false,
+  'mixed-expressions2': false,
+  'expert': false
+};
+
+var newlyCompleted = null;
+
+function initializeLevelsCompleted() {
+  var highestLevelCompleted = util.getCookie('arithmetic');
+  if (highestLevelCompleted == 'none' || !highestLevelCompleted) {
+    return;
+  }
+  var levelNames = [
+    'addition',
+    'multiplication',
+    'basic-expressions',
+    'parentheses',
+    'mixed-expressions1',
+    'mixed-expressions2',
+    'expert'
+  ];
+  var completed = true;
+  for (var i = 0; i < levelNames.length; i++) {
+    levelsCompleted[levelNames[i]] = completed;
+    if (levelNames[i] == highestLevelCompleted) {
+      completed = false;
+    }
+  }
+}
 
 // Gameplay methods:
 function handleFinalAnswer() {
@@ -110,29 +158,174 @@ function hideWalkthroughButton() {
 
 function showLevels() {
   $('#level-container').show();
+  colorLevelButtons();
+  unlockLevels();
 }
 
 function hideLevels() {
   $('#level-container').hide();
 }
 
+function colorLevelButtons() {
+  colorLevelButton('addition');
+  colorLevelButton('multiplication');
+  colorLevelButton('basic-expressions');
+  colorLevelButton('parentheses');
+  colorLevelButton('mixed-expressions1');
+  colorLevelButton('mixed-expressions2');
+  colorLevelButton('expert');
+  newlyCompleted = null;
+}
+
+function colorLevelButton(buttonType) {
+  var selector = '#' + buttonType + '-button';
+  var levelButtonClass = computeLevelButtonClass(buttonType);
+  var classList = ['big-button-font', 'level-button'];
+  
+  if (levelButtonClass) {
+    classList.push(levelButtonClass);
+  }
+  $(selector).removeClass();
+  for (var i = 0; i < classList.length; i++) {
+    $(selector).addClass(classList[i]);
+  }
+}
+
+function computeLevelButtonClass(buttonType) {
+  if (buttonType == 'addition') {
+    if (levelsCompleted['addition']) {
+      if (newlyCompleted == 'addition') {
+        return 'newly-completed-level';
+      } else {
+        return 'completed-level';
+      }
+    } else {
+      return 'available-level';
+    }
+  } else if (buttonType == 'multiplication') {
+    if (levelsCompleted['multiplication']) {
+      if (newlyCompleted == 'multiplication') {
+        return 'newly-completed-level';
+      } else {
+        return 'completed-level';
+      }
+    } else {
+      return 'available-level';
+    }
+  } else if (buttonType == 'basic-expressions') {
+    if (levelsCompleted['basic-expressions']) {
+      if (newlyCompleted == 'basic-expressions') {
+        return 'newly-completed-level';
+      } else {
+        return 'completed-level';
+      }
+    } else if (levelsCompleted['addition'] && levelsCompleted['multiplication']) {
+      return 'available-level';
+    } else {
+      return null;
+    }
+  } else if (buttonType == 'parentheses') {
+    if (levelsCompleted['parentheses']) {
+      if (newlyCompleted == 'parentheses') {
+        return 'newly-completed-level';
+      } else {
+        return 'completed-level';
+      }
+    } else if (levelsCompleted['addition'] && levelsCompleted['multiplication']) {
+      return 'available-level';
+    } else {
+      return null;
+    }
+  } else if (buttonType == 'mixed-expressions1') {
+    if (levelsCompleted['mixed-expressions1']) {
+      if (newlyCompleted == 'mixed-expressions1') {
+        return 'newly-completed-level';
+      } else {
+        return 'completed-level';        
+      }
+    } else if (levelsCompleted['basic-expressions'] && levelsCompleted['parentheses']) {
+      return 'available-level';
+    } else {
+      return null;
+    }
+  } else if (buttonType == 'mixed-expressions2') {
+    if (levelsCompleted['mixed-expressions2']) {
+      if (newlyCompleted == 'mixed-expressions2') {
+        return 'newly-completed-level';
+      } else {
+        return 'completed-level';
+      }
+    } else if (levelsCompleted['mixed-expressions1']) {
+      return 'available-level';
+    } else {
+      return null;
+    }
+  } else if (buttonType == 'expert') {
+    if (levelsCompleted['expert']) {
+      if (newlyCompleted == 'expert') {
+        return 'newly-completed-level';
+      } else {
+        return 'completed-level';
+      }
+    } else if (levelsCompleted['mixed-expressions2']) {
+      return 'available-level';
+    } else {
+      return null;
+    }
+  }
+}
+
+function unlockLevels() {
+  $('#addition-button').removeAttr('disabled');
+  $('#multiplication-button').removeAttr('disabled');
+  if (levelsCompleted['addition'] && levelsCompleted['multiplication']) {
+    $('#basic-expressions-button').removeAttr('disabled');
+    $('#parentheses-button').removeAttr('disabled');
+  } else {
+    $('#basic-expressions-button').attr('disabled', 'disabled');
+    $('#parentheses-button').attr('disabled', 'disabled');
+  }
+  if (levelsCompleted['basic-expressions'] && levelsCompleted['parentheses']) {
+    $('#mixed-expressions1-button').removeAttr('disabled');
+  } else {
+    $('#mixed-expressions1-button').attr('disabled', 'disabled');
+  }
+  if (levelsCompleted['mixed-expressions1']) {
+    $('#mixed-expressions2-button').removeAttr('disabled');
+  } else {
+    $('#mixed-expressions2-button').attr('disabled', 'disabled');
+  }
+  if (levelsCompleted['mixed-expressions2']) {
+    $('#expert-button').removeAttr('disabled');
+  } else {
+    $('#expert-button').attr('disabled', 'disabled');
+  }
+}
+
 function getFeedbackStats() {
   var text = "You completed " + howManyExercisesCorrect + " exercise" 
-    + ((howManyExercisesCorrect > 1) ? "s" : "") + " in 1 minute.";
+    + ((howManyExercisesCorrect > 1) ? "s" : "") + " in " + timeGiven;
 
   return text;
 }
 
-function getFeedbackCheer() {
+function getFeedback() {
   var p = howManyExercisesCorrect;
-  if (p >= 1 && p <= 10) { // Range of 10
-    return "You can do mental arithmetic!";
-  } else if (p >= 11 && p <= 20) { // Range of 9
-    return "You are pretty good!";
-  } else if (p >= 21 && p <= 29) { // Range of 8
-    return "You are a star!";
+
+  if (p >= 1 && p <= scales[difficulty][0]) {
+    return ["You can do mental arithmetic!", "You need " + scales[difficulty][1] + " exercises in " + timeGiven + " to pass this level..."];
+  } else if (p >= scales[difficulty][0] + 1 && p <= scales[difficulty][1]) {
+    return ["You are pretty good!", "You need " + scales[difficulty][1] + " exercises in " + timeGiven + " to pass this level..."];
+  } else if (p >= scales[difficulty][1] + 1 && p <= scales[difficulty][2]) {
+    levelsCompleted[difficulty] = true;
+    document.cookie = 'arithmetic=' + difficulty;
+    newlyCompleted = difficulty;
+    return ["You are a star!", "Try the next level?"];
   } else {
-    return "You are Ramanujan incarnate!";
+    levelsCompleted[difficulty] = true;
+    document.cookie = 'arithmetic=' + difficulty;
+    newlyCompleted = difficulty;
+    return ["You are a master!", "Try the next level?"];
   }
 }
 
@@ -140,16 +333,19 @@ function showFeedback() {
   $('#feedback').show();
   if (howManyExercisesCorrect) {
     var feedbackStatsText = getFeedbackStats();
-    var feedbackCheerText = getFeedbackCheer();
+    var feedback = getFeedback();
     $('#feedback-stats').text(feedbackStatsText);
     $('#feedback-stats').show();
-    $('#feedback-cheer').text(feedbackCheerText);
+    $('#feedback-cheer').text(feedback[0]);
     $('#feedback-cheer').show();
+    $('#feedback-instructions').text(feedback[1]);
+    $('#feedback-instructions').show();
   }
 }
 
 function hideFeedback() {
   $('#feedback').hide();
+  $('#check-mark').hide();
 }
 
 function giveFeedback() {
@@ -187,7 +383,16 @@ function stopCountdown() {
 }
 
 function resetTimeLeft() {
-  timeLeft = 60;
+  if (difficulty == 'addition') {
+    timeLeft = 30;
+    timeGiven = "30 seconds";
+  } else if (difficulty == 'multiplication') {
+    timeLeft = 45;
+    timeGiven = "45 seconds";
+  } else {
+    timeLeft = 60;
+    timeGiven = "1 minute";
+  }
 }
 
 function padLeftZeros(number) {
@@ -213,6 +418,7 @@ function updateView() {
     hidePlayButton();
     hideWalkthroughButton();
     hidePlayAgainButton();
+    hideFeedback();
     showLevels();
   } else if (gameState == "playing-game") {
     showGame();
@@ -249,4 +455,6 @@ controller = new Controller({
 
 
 attachClickHandlers();
+initializeLevelsCompleted();
 updateView();
+

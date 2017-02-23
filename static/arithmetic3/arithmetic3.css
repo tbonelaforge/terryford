@@ -118,3 +118,73 @@
 .level-button {
     margin: 10px;
 }
+
+.completed-level {
+    background: gold;
+    cursor: pointer;
+}
+
+.newly-completed-level {
+    background: gold;
+    cursor: pointer;
+    -webkit-animation: newly-completed-frames 1s;
+    animation: newly-completed-frames 1s;
+}
+
+.available-level {
+    background: lightskyblue;
+    cursor: pointer;
+    -webkit-animation: available-frames 2s infinite;
+    animation: available-frames 2s infinite;
+}
+
+@-webkit-keyframes available-frames {
+  0%, 100% {
+      background: aliceblue;
+  }
+  50% {
+      background: lightskyblue;
+  }
+}
+@-moz-keyframes available-frames {
+  0%, 100% {
+      background: aliceblue;
+  }
+  50% {
+      background: lightskyblue;
+  }
+}
+@keyframes available-frames {
+  0%, 100% {
+      background: aliceblue;
+  }
+  50% {
+      background: lightskyblue;
+  }
+}
+
+@-webkit-keyframes newly-completed-frames {
+  0%{
+      background: lightskyblue;
+  }
+  100% {
+      background: gold;
+  }
+}
+
+@-moz-keyframes newly-completed-frames {
+  0% {
+      background: lightskyblue;
+  }
+  100% {
+      background: gold;
+  }
+}
+@keyframes newly-completed-frames {
+  0% {
+      background: lightskyblue;
+  }
+  100% {
+      background: gold;
+  }
+}
