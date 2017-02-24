@@ -25,13 +25,13 @@ var difficulties = {
 };
 
 var scales = {
-  'addition': [10, 20, 29],
+  'addition': [9, 16, 23],
   'multiplication': [10, 20, 29],
   'basic-expressions': [10, 20, 29],
   'parentheses': [10, 20, 29],
   'mixed-expressions1': [10, 20, 29],
   'mixed-expressions2': [9, 18, 25],
-  'expert': [8, 16, 23]
+  'expert': [5, 9, 12]
 };
 
 var levelsCompleted = {
@@ -75,6 +75,14 @@ function handleFinalAnswer() {
   $('#next-button').show();
   $('#next-button').focus();
   howManyExercisesCorrect += 1;
+  updateTally();
+}
+
+function handlePlayClick(event) {
+  event.stopPropagation();
+  gameState = 'selecting-level';
+  howManyExercisesCorrect = 0;
+  updateView();
 }
 
 function attachClickHandlers() {
@@ -88,19 +96,14 @@ function attachClickHandlers() {
     $('#next-button').hide();
   });
   $('#play-button').click(function(event) {
-    event.stopPropagation();
-    gameState = 'selecting-level';
-    updateView();
+    handlePlayClick(event);
   });
   $('#play-again-button').click(function(event) {
-    event.stopPropagation();
-    gameState = 'selecting-level';
-    howManyExercisesCorrect = 0;
-    updateView();
+    handlePlayClick(event);
   });
   $('#walkthrough-button').click(function(event) {
     event.stopPropagation();
-    window.location = "walkthrough/1";
+    window.location = "walkthrough";
   });
   $('.level-button').click(function(event) {
     util.stopPropagation(event);
@@ -304,27 +307,31 @@ function unlockLevels() {
 
 function getFeedbackStats() {
   var text = "You completed " + howManyExercisesCorrect + " exercise" 
-    + ((howManyExercisesCorrect > 1) ? "s" : "") + " in " + timeGiven;
+    + ((howManyExercisesCorrect > 1) ? "s" : "") + " in " + timeGiven + ".";
 
   return text;
+}
+
+function recordLevelCompleted() {
+  if (!levelsCompleted[difficulty]) {
+    newlyCompleted = difficulty;
+  }
+  levelsCompleted[difficulty] = true;
+  document.cookie = 'arithmetic=' + difficulty;
 }
 
 function getFeedback() {
   var p = howManyExercisesCorrect;
 
   if (p >= 1 && p <= scales[difficulty][0]) {
-    return ["You can do mental arithmetic!", "You need " + scales[difficulty][1] + " exercises in " + timeGiven + " to pass this level..."];
+    return ["You can do mental arithmetic!", "You need " + (scales[difficulty][1] + 1) + " exercises in " + timeGiven + " to pass this level..."];
   } else if (p >= scales[difficulty][0] + 1 && p <= scales[difficulty][1]) {
-    return ["You are pretty good!", "You need " + scales[difficulty][1] + " exercises in " + timeGiven + " to pass this level..."];
+    return ["You are pretty good!", "You need " + (scales[difficulty][1] + 1) + " exercises in " + timeGiven + " to pass this level..."];
   } else if (p >= scales[difficulty][1] + 1 && p <= scales[difficulty][2]) {
-    levelsCompleted[difficulty] = true;
-    document.cookie = 'arithmetic=' + difficulty;
-    newlyCompleted = difficulty;
+    recordLevelCompleted();
     return ["You are a star!", "Try the next level?"];
   } else {
-    levelsCompleted[difficulty] = true;
-    document.cookie = 'arithmetic=' + difficulty;
-    newlyCompleted = difficulty;
+    recordLevelCompleted();
     return ["You are a master!", "Try the next level?"];
   }
 }
@@ -340,12 +347,32 @@ function showFeedback() {
     $('#feedback-cheer').show();
     $('#feedback-instructions').text(feedback[1]);
     $('#feedback-instructions').show();
+  } else {
+    $('#feedback-stats').text("");
+    $('#feedback-cheer').text("");
+    $('#feedback-instructions').text("");
   }
 }
 
 function hideFeedback() {
   $('#feedback').hide();
-  $('#check-mark').hide();
+  $('#check-mark').css({visibility: "hidden"});
+}
+
+function showCountdown() {
+  $('#countdown').show();
+}
+
+function hideCountdown() {
+  $('#countdown').hide();
+}
+
+function showTally() {
+  $('#tally').show();
+}
+
+function hideTally() {
+  $('#tally').hide();
 }
 
 function giveFeedback() {
@@ -375,6 +402,14 @@ function updateCountdownText() {
   var countdownDiv = $('#countdown');
   
   countdownDiv.text("0:" + padLeftZeros(timeLeft));
+}
+
+function updateTally() {
+  var tallyDiv = $('#tally');
+  var threshold = scales[difficulty][1] + 1;
+  var tallyText = howManyExercisesCorrect + " / " + threshold;
+
+  tallyDiv.text(tallyText);
 }
 
 function stopCountdown() {
@@ -419,6 +454,8 @@ function updateView() {
     hideWalkthroughButton();
     hidePlayAgainButton();
     hideFeedback();
+    hideCountdown();
+    hideTally();
     showLevels();
   } else if (gameState == "playing-game") {
     showGame();
@@ -428,20 +465,30 @@ function updateView() {
     hideWalkthroughButton();
     hideFeedback();
     hideLevels();
+    showTally();
+    showCountdown();
     controller.root = generateNewExercise(difficulty);
     controller.initializeTargets();
     controller.updateView();
     startCountdown();
+    updateTally();
   } else if (gameState == "feedback") {
     controller.removeHint();
     controller.detachDocumentClickHandler();
-    showTitle();
+    hideTitle();
     hideGame();
     showFeedback();
-    hidePlayButton();
-    showPlayAgainButton();
+    if ($('#feedback-instructions').text().match(/next/)) {
+      hidePlayAgainButton();
+      showPlayButton();
+    } else {
+      hidePlayButton();
+      showPlayAgainButton();
+    }
     showWalkthroughButton();
     hideLevels();
+    hideTally();
+    hideCountdown();
   }
 }
 

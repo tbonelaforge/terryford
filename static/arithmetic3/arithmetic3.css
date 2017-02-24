@@ -53,6 +53,13 @@
     width: 95%;
 }
 
+.tally-container {
+    float: left;
+    display: block;
+    font-size: 125%;
+    margin-left: 20px;
+}
+
 .countdown-container {
     float: right;
     display: block;

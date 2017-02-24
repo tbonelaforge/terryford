@@ -22,9 +22,6 @@ def arithmetic_start_page():
 
 @app.route('/walkthrough')
 def walkthrough():
-    return walkthrough_page()
+    html = render_template("arithmetic3/walkthrough.html")
 
-@app.route('/walkthrough/<walkthrough_step>')
-def walkthrough_page(walkthrough_step="1"):
-    html = render_template("arithmetic3/walkthrough.html", step=walkthrough_step)
     return html
