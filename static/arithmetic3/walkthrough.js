@@ -132,31 +132,6 @@ function subexpressionReplaced() {
   hopscotch.startTour(tour2, 1);
 }
 
-function padLeftZeros(number) {
-  var padding = "";
-
-  if (number < 10) {
-    padding = "0";
-  }
-  return padding + number;
-}
-
-function updateCountdownText() {
-  var countdownDiv = $('#countdown');
-
-  countdownDiv.text("0:" + padLeftZeros(timeLeft));
-}
-
-function startCountdown() {
-  setInterval(function() {
-    timeLeft -= 1;
-    if (timeLeft <= 0) {
-      window.location = 'arithmetic';
-    }
-    updateCountdownText();
-  }, 1000);
-}
-
 function startPlaying() {
   controller.cleanUp();
   controller = new Controller({
@@ -170,7 +145,6 @@ function startPlaying() {
   });
   controller.initializeTargets();
   controller.updateView();
-  startCountdown();
   if (newTarget !== undefined && newTarget !== null) {
     controller.showNewTargetById(newTarget);
   }
@@ -234,7 +208,7 @@ var tour1 = {
     },
     {
       title: "Subexpression",
-      content: "You can work the exercise step-by-step, by focusing on one operator at a time. Use the Tab key, or just click the operator to start simplifying.",
+      content: "Focus on a subexpression by using the Tab key, or by clicking on the operator. Then use the keyboard to type the result of the subexpression.",
       target: "3",
       placement: "bottom",
       xOffset: -12,
