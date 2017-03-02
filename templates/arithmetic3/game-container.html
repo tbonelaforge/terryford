@@ -5,10 +5,15 @@
     <link rel="stylesheet" href="static/arithmetic3/mathquill.css">
     <link rel="stylesheet" href="static/arithmetic3/arithmetic3.css">
     <link rel="stylesheet" href="static/vendor/jquery.alerts.css">
+    <link href="https://fonts.googleapis.com/css?family=VT323" rel="stylesheet">
   </head>
-  <body>
+  <body class="game-title-background">
     <div id="small-screen">
       <div id="level-container" class="centered hidden">
+        <div id="level-select-title" class="centered bigfont">
+          <h2>Select a level.</h2>
+          <h2 id="unlock-instructions">Complete each row to unlock the next!</h2>
+        </div>
         <div id="expert-level">
           <button id="expert-button" class="big-button-font level-button">Expert</button>
         </div>
@@ -21,10 +26,6 @@
         <div id="basic-level">
           <button id="basic-expressions-button" class="big-button-font level-button">Basic Expressions</button>
           <button id="parentheses-button" class="big-button-font level-button">Parentheses</button>
-        </div>
-        <div id="foundation-level">
-          <button id="addition-button" class="big-button-font level-button">Addition</button>
-          <button id="multiplication-button" class="big-button-font level-button">Multiplication</button>
         </div>
       </div> <!-- End Level Container -->
       <div id="tally" class="tally-container">
@@ -39,7 +40,7 @@
           
         </span>
         <span id="check-mark">
-          <img src="static/img/check.png" width="25px;">
+          <img src="static/img/arithmetic/check.png" width="25px;">
         </span>
         <button id="next-button" class="big-button-font hidden" tabindex="1" style="display:none;">Next</button>
       </div>

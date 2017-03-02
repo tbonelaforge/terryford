@@ -126,10 +126,25 @@ function subexpressionReplaced() {
   });
   controller.initializeTargets();
   controller.updateView();
+  var calloutMgr = hopscotch.getCalloutManager();
   $('.answer').click(function() {
     hopscotch.endTour();
+    calloutMgr.removeCallout('final-step');
+    readyForFinalAnswer();
   });
-  hopscotch.startTour(tour2, 1);
+//  hopscotch.startTour(tour2);
+
+  calloutMgr.createCallout({
+    id: 'final-step',
+    title: 'Simplified',
+    content: 'The part you selected has been simplified. Now the only thing left to do is to enter the final answer!',
+    target: '.mq-binary-operator',
+    placement: 'bottom',
+    xOffset: 20,
+    onClose: function() {
+      readyForFinalAnswer();
+    }
+  });
 }
 
 function startPlaying() {
@@ -251,9 +266,6 @@ var tour2 = {
   id: "walkthrough2b",
   steps: [
     {
-
-    },
-    {
       title: "Simplified",
       content: "The part you selected has been simplified. Now the only thing left to do is to enter the final answer!",
       target: ".mq-binary-operator",
@@ -261,6 +273,7 @@ var tour2 = {
       xOffset: 20
     }
   ],
+  stepNums: [" "],
   showCloseButton: false,
   onEnd: function() {
     readyForFinalAnswer();

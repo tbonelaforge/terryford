@@ -52,8 +52,6 @@ function initializeLevelsCompleted() {
     return;
   }
   var levelNames = [
-    'addition',
-    'multiplication',
     'basic-expressions',
     'parentheses',
     'mixed-expressions1',
@@ -163,6 +161,9 @@ function showLevels() {
   $('#level-container').show();
   colorLevelButtons();
   unlockLevels();
+  if (levelsCompleted['mixed-expressions2']) {
+    $('#unlock-instructions').hide();
+  }
 }
 
 function hideLevels() {
@@ -170,8 +171,6 @@ function hideLevels() {
 }
 
 function colorLevelButtons() {
-  colorLevelButton('addition');
-  colorLevelButton('multiplication');
   colorLevelButton('basic-expressions');
   colorLevelButton('parentheses');
   colorLevelButton('mixed-expressions1');
@@ -222,7 +221,7 @@ function computeLevelButtonClass(buttonType) {
       } else {
         return 'completed-level';
       }
-    } else if (levelsCompleted['addition'] && levelsCompleted['multiplication']) {
+    } else if (true || levelsCompleted['addition'] && levelsCompleted['multiplication']) {
       return 'available-level';
     } else {
       return null;
@@ -234,7 +233,7 @@ function computeLevelButtonClass(buttonType) {
       } else {
         return 'completed-level';
       }
-    } else if (levelsCompleted['addition'] && levelsCompleted['multiplication']) {
+    } else if (true || levelsCompleted['addition'] && levelsCompleted['multiplication']) {
       return 'available-level';
     } else {
       return null;
@@ -279,15 +278,8 @@ function computeLevelButtonClass(buttonType) {
 }
 
 function unlockLevels() {
-  $('#addition-button').removeAttr('disabled');
-  $('#multiplication-button').removeAttr('disabled');
-  if (levelsCompleted['addition'] && levelsCompleted['multiplication']) {
-    $('#basic-expressions-button').removeAttr('disabled');
-    $('#parentheses-button').removeAttr('disabled');
-  } else {
-    $('#basic-expressions-button').attr('disabled', 'disabled');
-    $('#parentheses-button').attr('disabled', 'disabled');
-  }
+  $('#basic-expressions-button').removeAttr('disabled');
+  $('#parentheses-button').removeAttr('disabled');
   if (levelsCompleted['basic-expressions'] && levelsCompleted['parentheses']) {
     $('#mixed-expressions1-button').removeAttr('disabled');
   } else {
@@ -345,8 +337,12 @@ function showFeedback() {
     $('#feedback-stats').show();
     $('#feedback-cheer').text(feedback[0]);
     $('#feedback-cheer').show();
-    $('#feedback-instructions').text(feedback[1]);
-    $('#feedback-instructions').show();
+    if (difficulty == 'expert' && feedback[1].match(/next/)) {
+      $('#feedback-instructions').text("");
+    } else {
+      $('#feedback-instructions').text(feedback[1]);
+      $('#feedback-instructions').show();
+    }
   } else {
     $('#feedback-stats').text("");
     $('#feedback-cheer').text("");
@@ -441,6 +437,7 @@ function padLeftZeros(number) {
 
 function updateView() {
   if (gameState == "title-screen") {
+    $('body').attr("class", "game-title-background");
     hideGame();
     showTitle();
     showPlayButton();
@@ -448,6 +445,7 @@ function updateView() {
     hidePlayAgainButton();
     hideLevels();
   } else if (gameState == "selecting-level") {
+    $('body').attr("class", "level-select-background");
     hideGame();
     hideTitle();
     hidePlayButton();
@@ -458,6 +456,7 @@ function updateView() {
     hideTally();
     showLevels();
   } else if (gameState == "playing-game") {
+    $('body').removeClass();
     showGame();
     hideTitle();
     hidePlayButton();
@@ -473,6 +472,7 @@ function updateView() {
     startCountdown();
     updateTally();
   } else if (gameState == "feedback") {
+    $('body').attr("class", "level-select-background");
     controller.removeHint();
     controller.detachDocumentClickHandler();
     hideTitle();
