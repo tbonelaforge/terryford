@@ -123,6 +123,6 @@ def create_new_user():
 def generate_new_cookie():
     user_id = create_new_user()
     if user_id is None:
-      return '0none'
+      return '0fffff'
     else:
-      return str(user_id) + 'none'
+      return str(user_id) + 'fffff'

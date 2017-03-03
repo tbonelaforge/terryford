@@ -15,9 +15,16 @@ var DEBUG=false;
 var userId;
 var difficulty;
 
+var levelNames = [
+  'basic-expressions',
+  'parentheses',
+  'mixed-expressions1',
+  'mixed-expressions2',
+  'expert'
+];
+
+
 var difficulties = {
-  'addition-button': 'addition',
-  'multiplication-button': 'multiplication',
   'basic-expressions-button': 'basic-expressions',
   'parentheses-button': 'parentheses',
   'mixed-expressions1-button': 'mixed-expressions1',
@@ -36,8 +43,6 @@ var scales = {
 };
 
 var levelsCompleted = {
-  'addition': false,
-  'multiplication': false,
   'basic-expressions': false,
   'parentheses': false,
   'mixed-expressions1': false,
@@ -49,32 +54,30 @@ var newlyCompleted = null;
 
 function initializeLevelsCompleted() {
   var rawCookie = util.getCookie('arithmetic');
-  var highestLevelCompleted = 'none';
+  var levelState = null;
   var parsed = parseArithmeticCookie(rawCookie);
   if (parsed) {
-    highestLevelCompleted = parsed.highestLevelCompleted;
     userId = parsed.userId;
-//    console.log("Got userId, level: (%s, %s)\n", userId, highestLevelCompleted);
-  } else {
-//    console.log("The cookie didn't parse!!!\n");
+    levelState = parsed.levelsCompleted;
   }
-  if (highestLevelCompleted == 'none' || !highestLevelCompleted) {
+  if (!levelState) {
     return;
   }
-  var levelNames = [
-    'basic-expressions',
-    'parentheses',
-    'mixed-expressions1',
-    'mixed-expressions2',
-    'expert'
-  ];
-  var completed = true;
   for (var i = 0; i < levelNames.length; i++) {
-    levelsCompleted[levelNames[i]] = completed;
-    if (levelNames[i] == highestLevelCompleted) {
-      completed = false;
-    }
+    var levelName = levelNames[i];
+    levelsCompleted[levelName] = levelState[levelName];
   }
+}
+
+function writeArithmeticCookie() {
+  var uid = (userId) ? userId : 0;
+  var levelState = "";
+
+  for (var i = 0; i < levelNames.length; i++) {
+    var levelName = levelNames[i];
+    levelState += (levelsCompleted[levelName]) ? 't' : 'f';
+  }
+  return uid + levelState;
 }
 
 function parseArithmeticCookie(rawCookie) {
@@ -83,12 +86,25 @@ function parseArithmeticCookie(rawCookie) {
   if (matches) {
       return {
         userId: matches[1],
-        highestLevelCompleted: matches[2]
+        levelsCompleted: parseLevelsCompleted(matches[2])
       }
   } else {
     return null;
   } 
+}
 
+function parseLevelsCompleted(levelsCompletedString) {
+  var parsed = {};
+
+  for (var i = 0; i < levelNames.length; i++) {
+    var c = levelsCompletedString[i];
+    if (c == 't') {
+      parsed[levelNames[i]] = true;
+    } else {
+      parsed[levelNames[i]] = false;
+    }
+  }
+  return parsed;
 }
 
 // Gameplay methods:
@@ -129,13 +145,8 @@ function attachClickHandlers() {
   });
   $('.level-button').click(function(event) {
     util.stopPropagation(event);
-//    console.log("Inside the level-button click handler, got called with event...\n");
-//    console.log(event);
-//    console.log("The id of the button is:\n");
-//    console.log(event.target.getAttribute('id'));
     var levelButtonId = event.target.getAttribute('id');
     difficulty = difficulties[levelButtonId];
-//    console.log("Just set the difficulty to %s", difficulty);
     gameState = 'playing-game';
     updateView();
   });
@@ -333,7 +344,7 @@ function recordLevelCompleted() {
     newlyCompleted = difficulty;
   }
   levelsCompleted[difficulty] = true;
-  document.cookie = 'arithmetic=' + difficulty;
+  document.cookie = 'arithmetic=' + writeArithmeticCookie();
 }
 
 function getFeedback() {
@@ -413,7 +424,6 @@ function startCountdown() {
     }
     if (timeLeft <= 0) {
       stopCountdown();
-//      giveFeedback();
       recordScore(function() {
         giveFeedback();
       });
@@ -433,11 +443,9 @@ function recordScore(callback) {
     contentType: 'application/json; charset=utf-8',
     dataType: "json",
     success: function(responseData) {
-//      console.log("Inside the recordScore ajax success callback, got called with responseData:", responseData);
       callback();
     },
     error: function(jqXHR, textStatus, errorThrown) {
-//      console.log("Inside recordScore ajax error callback, got called with jqXHR, textStatus, errorThrown:\n", jqXHR, textStatus, errorThrown);
       callback();
     },
 
