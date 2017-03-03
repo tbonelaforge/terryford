@@ -1,44 +1,404 @@
+// Gameplay state
 
-var DEBUG = false;
-var container = document.getElementById("math-container");
-var controller = new Controller({
-  root: generateNewExpression(),
-  container: container
-});
+
+var controller;
+var gameState = 'title-screen';
 var countdown = null;
 var timeLeft = 60;
+var timeGiven;
 var howManyExercisesCorrect = 0;
 
-controller.correctCallback = function correctCallback() {
-  if (controller.root.type == "number") {
-    $('#next-button').show();
-    $('#next-button').focus();
-    howManyExercisesCorrect += 1;
-  }
+var DEBUG=false;
+
+// Can be addition, multiplication, basic-expressions, parentheses, 
+// mixed-expressions1, mixed-expressions2, or expert
+var userId;
+var difficulty;
+
+var difficulties = {
+  'addition-button': 'addition',
+  'multiplication-button': 'multiplication',
+  'basic-expressions-button': 'basic-expressions',
+  'parentheses-button': 'parentheses',
+  'mixed-expressions1-button': 'mixed-expressions1',
+  'mixed-expressions2-button': 'mixed-expressions2',
+  'expert-button': 'expert'
 };
 
-function resetTimeLeft() {
-  timeLeft = 60;
-}
+var scales = {
+  'addition': [9, 16, 23],
+  'multiplication': [10, 20, 29],
+  'basic-expressions': [10, 20, 29],
+  'parentheses': [10, 20, 29],
+  'mixed-expressions1': [10, 20, 29],
+  'mixed-expressions2': [9, 18, 25],
+  'expert': [5, 9, 12]
+};
 
-function padLeftZeros(number) {
-  var padding = "";
+var levelsCompleted = {
+  'addition': false,
+  'multiplication': false,
+  'basic-expressions': false,
+  'parentheses': false,
+  'mixed-expressions1': false,
+  'mixed-expressions2': false,
+  'expert': false
+};
 
-  if (number < 10) {
-    padding = "0";
+var newlyCompleted = null;
+
+function initializeLevelsCompleted() {
+  var rawCookie = util.getCookie('arithmetic');
+  var highestLevelCompleted = 'none';
+  var parsed = parseArithmeticCookie(rawCookie);
+  if (parsed) {
+    highestLevelCompleted = parsed.highestLevelCompleted;
+    userId = parsed.userId;
+//    console.log("Got userId, level: (%s, %s)\n", userId, highestLevelCompleted);
+  } else {
+//    console.log("The cookie didn't parse!!!\n");
   }
-  return padding + number;
+  if (highestLevelCompleted == 'none' || !highestLevelCompleted) {
+    return;
+  }
+  var levelNames = [
+    'basic-expressions',
+    'parentheses',
+    'mixed-expressions1',
+    'mixed-expressions2',
+    'expert'
+  ];
+  var completed = true;
+  for (var i = 0; i < levelNames.length; i++) {
+    levelsCompleted[levelNames[i]] = completed;
+    if (levelNames[i] == highestLevelCompleted) {
+      completed = false;
+    }
+  }
 }
 
-function updateCountdownText() {
-  var countdownDiv = $('#countdown');
+function parseArithmeticCookie(rawCookie) {
+  var matches = rawCookie.match(/^(\d+)([^\d]+)$/);
+
+  if (matches) {
+      return {
+        userId: matches[1],
+        highestLevelCompleted: matches[2]
+      }
+  } else {
+    return null;
+  } 
+
+}
+
+// Gameplay methods:
+function handleFinalAnswer() {
+  $('#check-mark').css({visibility: "visible"});
+  $('#next-button').show();
+  $('#next-button').focus();
+  howManyExercisesCorrect += 1;
+  updateTally();
+}
+
+function handlePlayClick(event) {
+  event.stopPropagation();
+  gameState = 'selecting-level';
+  howManyExercisesCorrect = 0;
+  updateView();
+}
+
+function attachClickHandlers() {
+  $('#next-button').click(function(event) {
+    event.stopPropagation();
+    var newExercise = generateNewExercise(difficulty);
+    controller.root = newExercise;
+    controller.initializeTargets();
+    controller.updateView();
+    $('#check-mark').css({visibility: "hidden"});
+    $('#next-button').hide();
+  });
+  $('#play-button').click(function(event) {
+    handlePlayClick(event);
+  });
+  $('#play-again-button').click(function(event) {
+    handlePlayClick(event);
+  });
+  $('#walkthrough-button').click(function(event) {
+    event.stopPropagation();
+    window.location = "arithmetic/walkthrough";
+  });
+  $('.level-button').click(function(event) {
+    util.stopPropagation(event);
+//    console.log("Inside the level-button click handler, got called with event...\n");
+//    console.log(event);
+//    console.log("The id of the button is:\n");
+//    console.log(event.target.getAttribute('id'));
+    var levelButtonId = event.target.getAttribute('id');
+    difficulty = difficulties[levelButtonId];
+//    console.log("Just set the difficulty to %s", difficulty);
+    gameState = 'playing-game';
+    updateView();
+  });
+}
+
+function showGame() {
+  $('#game-container').show();
+}
+
+function hideGame() {
+  $('#game-container').hide();
+}
+
+function showTitle() {
+  $('#title').show();
+}
+
+function hideTitle() {
+  $('#title').hide();
+}
+
+function showPlayButton() {
+  $('#play').show();
+}
+
+function hidePlayButton() {
+  $('#play').hide();
+}
+
+function showPlayAgainButton() {
+  $('#play-again').show();
+}
+
+function hidePlayAgainButton() {
+  $('#play-again').hide();
+}
+
+function showWalkthroughButton() {
+  $('#walkthrough').show();
+}
+
+function hideWalkthroughButton() {
+  $('#walkthrough').hide();
+}
+
+function showLevels() {
+  $('#level-container').show();
+  colorLevelButtons();
+  unlockLevels();
+  if (levelsCompleted['mixed-expressions2']) {
+    $('#unlock-instructions').hide();
+  }
+}
+
+function hideLevels() {
+  $('#level-container').hide();
+}
+
+function colorLevelButtons() {
+  colorLevelButton('basic-expressions');
+  colorLevelButton('parentheses');
+  colorLevelButton('mixed-expressions1');
+  colorLevelButton('mixed-expressions2');
+  colorLevelButton('expert');
+  newlyCompleted = null;
+}
+
+function colorLevelButton(buttonType) {
+  var selector = '#' + buttonType + '-button';
+  var levelButtonClass = computeLevelButtonClass(buttonType);
+  var classList = ['big-button-font', 'level-button'];
   
-  countdownDiv.text("0:" + padLeftZeros(timeLeft));
+  if (levelButtonClass) {
+    classList.push(levelButtonClass);
+  }
+  $(selector).removeClass();
+  for (var i = 0; i < classList.length; i++) {
+    $(selector).addClass(classList[i]);
+  }
 }
 
-function stopCountdown() {
-  clearInterval(countdown);
-  countdown = null;
+function computeLevelButtonClass(buttonType) {
+  if (buttonType == 'addition') {
+    if (levelsCompleted['addition']) {
+      if (newlyCompleted == 'addition') {
+        return 'newly-completed-level';
+      } else {
+        return 'completed-level';
+      }
+    } else {
+      return 'available-level';
+    }
+  } else if (buttonType == 'multiplication') {
+    if (levelsCompleted['multiplication']) {
+      if (newlyCompleted == 'multiplication') {
+        return 'newly-completed-level';
+      } else {
+        return 'completed-level';
+      }
+    } else {
+      return 'available-level';
+    }
+  } else if (buttonType == 'basic-expressions') {
+    if (levelsCompleted['basic-expressions']) {
+      if (newlyCompleted == 'basic-expressions') {
+        return 'newly-completed-level';
+      } else {
+        return 'completed-level';
+      }
+    } else if (true || levelsCompleted['addition'] && levelsCompleted['multiplication']) {
+      return 'available-level';
+    } else {
+      return null;
+    }
+  } else if (buttonType == 'parentheses') {
+    if (levelsCompleted['parentheses']) {
+      if (newlyCompleted == 'parentheses') {
+        return 'newly-completed-level';
+      } else {
+        return 'completed-level';
+      }
+    } else if (true || levelsCompleted['addition'] && levelsCompleted['multiplication']) {
+      return 'available-level';
+    } else {
+      return null;
+    }
+  } else if (buttonType == 'mixed-expressions1') {
+    if (levelsCompleted['mixed-expressions1']) {
+      if (newlyCompleted == 'mixed-expressions1') {
+        return 'newly-completed-level';
+      } else {
+        return 'completed-level';        
+      }
+    } else if (levelsCompleted['basic-expressions'] && levelsCompleted['parentheses']) {
+      return 'available-level';
+    } else {
+      return null;
+    }
+  } else if (buttonType == 'mixed-expressions2') {
+    if (levelsCompleted['mixed-expressions2']) {
+      if (newlyCompleted == 'mixed-expressions2') {
+        return 'newly-completed-level';
+      } else {
+        return 'completed-level';
+      }
+    } else if (levelsCompleted['mixed-expressions1']) {
+      return 'available-level';
+    } else {
+      return null;
+    }
+  } else if (buttonType == 'expert') {
+    if (levelsCompleted['expert']) {
+      if (newlyCompleted == 'expert') {
+        return 'newly-completed-level';
+      } else {
+        return 'completed-level';
+      }
+    } else if (levelsCompleted['mixed-expressions2']) {
+      return 'available-level';
+    } else {
+      return null;
+    }
+  }
+}
+
+function unlockLevels() {
+  $('#basic-expressions-button').removeAttr('disabled');
+  $('#parentheses-button').removeAttr('disabled');
+  if (levelsCompleted['basic-expressions'] && levelsCompleted['parentheses']) {
+    $('#mixed-expressions1-button').removeAttr('disabled');
+  } else {
+    $('#mixed-expressions1-button').attr('disabled', 'disabled');
+  }
+  if (levelsCompleted['mixed-expressions1']) {
+    $('#mixed-expressions2-button').removeAttr('disabled');
+  } else {
+    $('#mixed-expressions2-button').attr('disabled', 'disabled');
+  }
+  if (levelsCompleted['mixed-expressions2']) {
+    $('#expert-button').removeAttr('disabled');
+  } else {
+    $('#expert-button').attr('disabled', 'disabled');
+  }
+}
+
+function getFeedbackStats() {
+  var text = "You completed " + howManyExercisesCorrect + " exercise" 
+    + ((howManyExercisesCorrect > 1) ? "s" : "") + " in " + timeGiven + ".";
+
+  return text;
+}
+
+function recordLevelCompleted() {
+  if (!levelsCompleted[difficulty]) {
+    newlyCompleted = difficulty;
+  }
+  levelsCompleted[difficulty] = true;
+  document.cookie = 'arithmetic=' + difficulty;
+}
+
+function getFeedback() {
+  var p = howManyExercisesCorrect;
+
+  if (p >= 1 && p <= scales[difficulty][0]) {
+    return ["You can do mental arithmetic!", "You need " + (scales[difficulty][1] + 1) + " exercises in " + timeGiven + " to pass this level..."];
+  } else if (p >= scales[difficulty][0] + 1 && p <= scales[difficulty][1]) {
+    recordLevelCompleted();
+    return ["You are pretty good!", "Try the next level?"];
+  } else if (p >= scales[difficulty][1] + 1 && p <= scales[difficulty][2]) {
+    recordLevelCompleted();
+    return ["You are a star!", "Try the next level?"];
+  } else {
+    recordLevelCompleted();
+    return ["You are a master!", "Try the next level?"];
+  }
+}
+
+function showFeedback() {
+  $('#feedback').show();
+  if (howManyExercisesCorrect) {
+    var feedbackStatsText = getFeedbackStats();
+    var feedback = getFeedback();
+    $('#feedback-stats').text(feedbackStatsText);
+    $('#feedback-stats').show();
+    $('#feedback-cheer').text(feedback[0]);
+    $('#feedback-cheer').show();
+    if (difficulty == 'expert' && feedback[1].match(/next/)) {
+      $('#feedback-instructions').text("");
+    } else {
+      $('#feedback-instructions').text(feedback[1]);
+      $('#feedback-instructions').show();
+    }
+  } else {
+    $('#feedback-stats').text("");
+    $('#feedback-cheer').text("");
+    $('#feedback-instructions').text("");
+  }
+}
+
+function hideFeedback() {
+  $('#feedback').hide();
+  $('#check-mark').css({visibility: "hidden"});
+}
+
+function showCountdown() {
+  $('#countdown').show();
+}
+
+function hideCountdown() {
+  $('#countdown').hide();
+}
+
+function showTally() {
+  $('#tally').show();
+}
+
+function hideTally() {
+  $('#tally').hide();
+}
+
+function giveFeedback() {
+  gameState = "feedback"
+  updateView();
 }
 
 function startCountdown() {
@@ -51,106 +411,147 @@ function startCountdown() {
     if (!DEBUG) {
       timeLeft -= 1;
     }
-    if (timeLeft < 0) {
+    if (timeLeft <= 0) {
       stopCountdown();
-      giveFeedback();
+//      giveFeedback();
+      recordScore(function() {
+        giveFeedback();
+      });
     }
     updateCountdownText();
   }, 1000);
 }
 
-// allow clicking out of editable area to go back to static display
-document.addEventListener('click', function() {
-  controller.resetDisplay();
-}, false);
+function recordScore(callback) {
+  if (!userId) {
+    return callback();
+  }
+  $.ajax({
+    type: "POST",
+    url: '/arithmetic/scores/' + userId,
+    data: JSON.stringify({score: howManyExercisesCorrect, level: difficulty}),
+    contentType: 'application/json; charset=utf-8',
+    dataType: "json",
+    success: function(responseData) {
+//      console.log("Inside the recordScore ajax success callback, got called with responseData:", responseData);
+      callback();
+    },
+    error: function(jqXHR, textStatus, errorThrown) {
+//      console.log("Inside recordScore ajax error callback, got called with jqXHR, textStatus, errorThrown:\n", jqXHR, textStatus, errorThrown);
+      callback();
+    },
 
-$('#next-button').click(function() {
-  controller.root = generateNewExpression();
-  controller.resetDisplay();
-  $('#next-button').hide();
-});
+  });
+}
 
-$('#play-again').click(function() {
-  startGame();
-});
+function updateCountdownText() {
+  var countdownDiv = $('#countdown');
+  
+  countdownDiv.text("0:" + padLeftZeros(timeLeft));
+}
 
-$('#play').click(function() {
-  startGame();
-});
+function updateTally() {
+  var tallyDiv = $('#tally');
+  var threshold = scales[difficulty][0] + 1;
+  var tallyText = howManyExercisesCorrect + " / " + threshold;
 
-$('#quit').click(function() {
-  window.location = "/";
-});
+  tallyDiv.text(tallyText);
+}
 
-$('#walkthrough').click(function() {
-  window.location = "/walkthrough/1";
-});
+function stopCountdown() {
+  clearInterval(countdown);
+  countdown = null;
+}
 
-function showFeedback() {
-  if (howManyExercisesCorrect) {
-    $('#feedback-stats').text("You completed " + howManyExercisesCorrect + " exercises in 1 minute.");
-    $('#feedback-stats').show();
-    var feedbackCheer = computeFeedbackCheer(howManyExercisesCorrect);
-    
-    $('#feedback-cheer').text(feedbackCheer);
-    $('#feedback-cheer').show();
-    $('#play-again').show();
-    $('#walkthrough').show();
-    $('#quit').show();
+function resetTimeLeft() {
+  if (difficulty == 'addition') {
+    timeLeft = 30;
+    timeGiven = "30 seconds";
+  } else if (difficulty == 'multiplication') {
+    timeLeft = 45;
+    timeGiven = "45 seconds";
   } else {
-    $('#feedback-stats').hide();
-    $('#feedback-cheer').hide();
-    $('#play-again').hide();
-    $('#play').show();
-    $('#walkthrough').show();
-    $('#quit').show();
+    timeLeft = 60;
+    timeGiven = "1 minute";
   }
-  $('#feedback').show();
 }
 
-function computeFeedbackCheer(howManyExercisesCorrect) {
-  var feedbackCheer = "You can do mental arithmetic.";
-  if (howManyExercisesCorrect > 7 && howManyExercisesCorrect <= 14) {
-    feedbackCheer = "You are pretty good!";
-  } else if (howManyExercisesCorrect > 14 && howManyExercisesCorrect <= 21) {
-    feedbackCheer = "You are a star!";
-  } else if (howManyExercisesCorrect > 21) {
-    feedbackCheer = "You are Ramanujan incarnate!";
+function padLeftZeros(number) {
+  var padding = "";
+
+  if (number < 10) {
+    padding = "0";
   }
-  return feedbackCheer;
+  return padding + number;
 }
 
-function hideFeedback() {
-  $('#feedback').hide();
-  $('#play-again').hide();
-  $('#play').hide();
-  $('#walkthrough').hide();
-  $('#quit').hide();
+function updateView() {
+  if (gameState == "title-screen") {
+    $('body').attr("class", "game-title-background");
+    hideGame();
+    showTitle();
+    showPlayButton();
+    showWalkthroughButton();
+    hidePlayAgainButton();
+    hideLevels();
+  } else if (gameState == "selecting-level") {
+    $('body').attr("class", "level-select-background");
+    hideGame();
+    hideTitle();
+    hidePlayButton();
+    hideWalkthroughButton();
+    hidePlayAgainButton();
+    hideFeedback();
+    hideCountdown();
+    hideTally();
+    showLevels();
+  } else if (gameState == "playing-game") {
+    $('body').removeClass();
+    showGame();
+    hideTitle();
+    hidePlayButton();
+    hidePlayAgainButton();
+    hideWalkthroughButton();
+    hideFeedback();
+    hideLevels();
+    showTally();
+    showCountdown();
+    controller.root = generateNewExercise(difficulty);
+    controller.initializeTargets();
+    controller.updateView();
+    startCountdown();
+    updateTally();
+  } else if (gameState == "feedback") {
+    $('body').attr("class", "level-select-background");
+    controller.removeHint();
+    controller.detachDocumentClickHandler();
+    hideTitle();
+    hideGame();
+    showFeedback();
+    if ($('#feedback-instructions').text().match(/next/)) {
+      hidePlayAgainButton();
+      showPlayButton();
+    } else {
+      hidePlayButton();
+      showPlayAgainButton();
+    }
+    showWalkthroughButton();
+    hideLevels();
+    hideTally();
+    hideCountdown();
+  }
 }
 
-function showGame() {
-  $('#countdown').show();
-  $('#game-container').show();
-}
 
-function hideGame() {
-  $('#countdown').hide();
-  $('#game-container').hide();
-}
+controller = new Controller({
+  root: generateNewExercise(),
+  finalAnswerCallback: function() {
+    handleFinalAnswer();
+  }
+});
 
-function giveFeedback() {
-  hideGame();
-  showFeedback();
-}
 
-function startGame() {
-  controller.root = generateNewExpression();
-  howManyExercisesCorrect = 0;
-  controller.resetDisplay();
-  showGame();
-  $('#next-button').hide();
-  hideFeedback();
-  startCountdown();
-}
+attachClickHandlers();
+initializeLevelsCompleted();
+updateView();
 
-giveFeedback();

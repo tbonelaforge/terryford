@@ -2,6 +2,7 @@ var controller;
 var exercise;
 var tour;
 
+var timeLeft = 60;
 
 function hideTitle() {
   $('#title').hide();
@@ -46,6 +47,26 @@ function temporaryTabHandler(event) {
 }
 
 function startWalkthrough() {
+  hideTitle();
+  hidePlayButton();
+  hideFeedback();
+  controller = new Controller({
+    root: exercise,
+    shouldAttachKeyboardHandlers: false,
+    shouldAttachEditorClickHandler: false,
+    shouldAttachDocumentClickHandler: false,
+    shouldListenForEditorEvents: false,
+    shouldFlashCursor: false,
+    shouldFocusCurrentTarget: false
+  });
+  controller.initializeTargets();
+  controller.updateView();
+  $('.answer').removeAttr('tabindex');
+  $('#3').removeClass('clickable');
+  hopscotch.startTour(tour1);
+}
+
+function startWalkthrough2() {
   hideTitle();
   hidePlayButton();
   hidePlayAgainButton();
@@ -97,7 +118,7 @@ function subexpressionReplaced() {
     shouldAttachEditorClickHandler: false,
     shouldAttachDocumentClickHandler: false,
     shouldListenForEditorEvents: false,
-    shouldFlashCursor: false,
+    shouldFlashCursor: true,
     shouldFocusCurrentTarget: false,
     finalAnswerCallback: function() {
       handleFinalAnswer();
@@ -109,6 +130,31 @@ function subexpressionReplaced() {
     hopscotch.endTour();
   });
   hopscotch.startTour(tour2, 1);
+}
+
+function padLeftZeros(number) {
+  var padding = "";
+
+  if (number < 10) {
+    padding = "0";
+  }
+  return padding + number;
+}
+
+function updateCountdownText() {
+  var countdownDiv = $('#countdown');
+
+  countdownDiv.text("0:" + padLeftZeros(timeLeft));
+}
+
+function startCountdown() {
+  setInterval(function() {
+    timeLeft -= 1;
+    if (timeLeft <= 0) {
+      window.location = 'arithmetic';
+    }
+    updateCountdownText();
+  }, 1000);
 }
 
 function startPlaying() {
@@ -124,6 +170,7 @@ function startPlaying() {
   });
   controller.initializeTargets();
   controller.updateView();
+  startCountdown();
   if (newTarget !== undefined && newTarget !== null) {
     controller.showNewTargetById(newTarget);
   }
@@ -177,11 +224,44 @@ var tour1 = {
   id: "walkthrough2",
   steps: [
     {
+      title: "Arithmetic Exercise",
+      content: "The objective is to complete as many of these exercises as you can in the given time.",
+      target: ".mq-math-mode",
+      placement: "left",
+      arrowOffset: 0,
+      yOffset: -15,
+      xOffset: -20
+    },
+    {
       title: "Subexpression",
       content: "You can work the exercise step-by-step, by focusing on one operator at a time. Use the Tab key, or just click the operator to start simplifying.",
       target: "3",
       placement: "bottom",
-      xOffset: -12
+      xOffset: -12,
+      onShow: function() {
+        $('#3').addClass('clickable');
+        $('#3').click(function() {
+          newTarget = 3;
+          $(document).off("keydown", temporaryTabHandler);
+          hopscotch.endTour(); // Will trigger updateView
+        });
+        $(document).keydown(temporaryTabHandler);
+        $('#next-button').click(function() {
+          window.location = "arithmetic";
+        });
+      }
+    },
+    {
+      title: "Answer Box",
+      content: "If you can do the exercise in your head, click the answer box and use the keyboard to enter the final answer.",
+      target: ".answer",
+      placement: "bottom",
+      onShow: function() {
+        $('.answer').click(function() {
+          $(document).off("keydown", temporaryTabHandler);
+          hopscotch.endTour();
+        });
+      }
     }
   ],
   showCloseButton: false,

@@ -1,12 +1,10 @@
-//function renderView(node) {
-function renderView(viewNodes) {
-//  var viewNodes = node.toViewNodes();
+function renderView(viewNodes, targetsById) {
   var html = "";
   html += '<span class="mq-math-mode"><span class="mq-root-block">';
   for (var i = 0; i < viewNodes.length; i++) {
     var viewNode = viewNodes[i];
-    var viewNodeHtml = viewNode.render();
-    html += viewNodeHtml;
+    var view = viewNode.render(targetsById);
+    html += view;
   }
   html += '</span></span>';
   return html;

@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Arithmetic Game</title>
+    <title>Arithmetic3 Game</title>
     <link rel="stylesheet" href="../static/arithmetic/mathquill.css">
     <link rel="stylesheet" href="../static/arithmetic/arithmetic.css">
     <link rel="stylesheet" href="../static/vendor/jquery.alerts.css">
@@ -9,53 +9,31 @@
   </head>
   <body>
     <div id="small-screen">
-      <div id="countdown" class="countdown-container" style="">0:59</div>
-      <div id="game-container" class="centered" style="">
-        <p id="math-container" class="bigfont">
-
-        </p>
-        <button id="next-button" class="big-button-font hidden" tabindex="3" style="display: none;">
-          Next
-        </button>
+      <div id="countdown" class="countdown-container">
+        &nbsp;
       </div>
-      <div id="feedback" class="centered bigfont hidden" style="display: none;">
-        <h2 id="feedback-title">Arithmetic Game</h2>
-        <p id="feedback-stats" class="hidden" style="display: none;">
-
-        </p>
-        <p id="feedback-cheer" class="hidden" style="display: none;">
-          
-        </p>
+      <div id="game-container" class="centered">
+        <span id="math-container" class="bigfont">
+        </span>
+        <span id="check-mark">
+          <img src="../static/img/arithmetic/check.png" width="25px;">
+        </span>
+        <button id="next-button" class="big-button-font hidden" tabindex="1" style="display:none;">Next</button>
       </div>
-      <div id="play-again" class="centered hidden" style="display: none;">
-        <button class="big-button-font">
-          Play Again
-        </button>      
-      </div>
-      <div id="play" class="centered hidden" style="display: none;">
-        <button class="big-button-font">
-          Play
-        </button>
-      </div>
-      <!--
-          <div id="quit" class="centered hidden">
-            <button class="big-button-font">
-              Quit
-            </button>
-          </div>
-          -->
-      <script type="text/javascript" src="../static/vendor/jquery-3.1.1.min.js"></script>
-      <script type="text/javascript" src="../static/vendor/jquery.alerts.js"></script>
-      <script type="text/javascript" src="../static/vendor/hopscotch.js"></script>
-      <script type="text/javascript" src="../static/arithmetic/model/node.js"></script>
-      <script type="text/javascript" src="../static/arithmetic/model/nodescanner.js"></script>
-      <script type="text/javascript" src="../static/arithmetic/model/generatenewexpression.js"></script>
-      <script type="text/javascript" src="../static/arithmetic/view/numbereditor.js"></script>
-      <script type="text/javascript" src="../static/arithmetic/view/staticdigit.js"></script>
-      <script type="text/javascript" src="../static/arithmetic/view/staticoperator.js"></script>
-      <script type="text/javascript" src="../static/arithmetic/view/renderview.js"></script>
-      <script type="text/javascript" src="../static/arithmetic/controller/controller.js"></script>
-      <script type="text/javascript" src="../static/arithmetic/walkthrough{{ step }}.js"></script>
     </div>
+    <script type="text/javascript" src="../static/vendor/jquery-3.1.1.js"></script>
+    <script type="text/javascript" src="../static/vendor/jquery.alerts.js"></script>
+    <script type="text/javascript" src="../static/vendor/hopscotch.js"></script>
+    <script type="text/javascript" src="../static/arithmetic/util.js"></script>
+    <script type="text/javascript" src="../static/arithmetic/view/staticoperator.js"></script>
+    <script type="text/javascript" src="../static/arithmetic/view/staticdigit.js"></script>
+    <script type="text/javascript" src="../static/arithmetic/view/staticanswer.js"></script>
+    <script type="text/javascript" src="../static/arithmetic/view/numbereditor.js"></script>
+    <script type="text/javascript" src="../static/arithmetic/view/renderview.js"></script>
+    <script type="text/javascript" src="../static/arithmetic/model/node.js"></script>
+    <script type="text/javascript" src="../static/arithmetic/model/generatenewexercise.js"></script>
+    <script type="text/javascript" src="../static/arithmetic/model/expressionscanner.js"></script>
+    <script type="text/javascript" src="../static/arithmetic/controller/controller.js"></script>
+    <script type="text/javascript" src="../static/arithmetic/walkthrough.js"></script>
   </body>
 </html>

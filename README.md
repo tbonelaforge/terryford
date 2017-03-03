@@ -6,7 +6,7 @@ Setup Instructions
 
 2. Ensure you have virtualenv installed: 
 
-    [sudo] pip install virtualenv
+    sudo pip install virtualenv
 
 3. Activate your virtual environment:
 

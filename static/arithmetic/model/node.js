@@ -1,31 +1,144 @@
-var Node = function () {
+function Node(options) {
+  this.id = options.id;
+  this.type = options.type;
+  this.value = options.value;
+  this.state = options.state || 'static'; // Can be static, or editing
+  this.left = options.left || null;
+  this.right = options.right || null;
+  this.displayStaticValue = options.displayStaticValue || false;
+  this.depth = options.depth;
+}
 
-  var idCounter = 0;
-
-  function Node(options) {
-    this.type = options.type; // Can be 'number' or 'operator'
-    this.value = options.value;
-    this.state = options.state || 'static'; // Can be static, easy, hard, or editing
-    this.left = options.left || null;
-    this.right = options.right || null;
-    this.id = ++idCounter;
-  }
-
-  Node.prototype.getOperatorCode = function() {
-    if (this.value == '*') {
-      return '&times;'
-    } else if (this.value == '+') {
-      return '+';
+Node.prototype = {
+  toViewNodes: function(editorState) {
+    var viewNodes;
+    
+    if (this.state == 'editing') {
+      viewNodes = [this.toEditor(editorState)];
+      return viewNodes;
     }
-  }
+    var left = [];
+    var right = [];
+    
+    if (this.left) {
+      left = this.left.toViewNodes(editorState);
+      if (this.shouldParenthesize(this.left)) {
+        left = this.parenthesizeViewNodes(left);
+      }
+    }
+    if (this.right) {
+      right = this.right.toViewNodes(editorState);
+      if (this.shouldParenthesize(this.right)) {
+        right = this.parenthesizeViewNodes(right);
+      }
+    }
+    var theseViewNodes = this.toTheseViewNodes();
+    viewNodes = left.concat(theseViewNodes, right);
+    return viewNodes;
+  },
+  
+  toTheseViewNodes: function() {
+    if (this.type == "number") {
+      var digitArray = this.splitDigits();
+      var theseViewNodes = [];
+      for (var i = 0; i < digitArray.length; i++) {
+        var digit = digitArray[i];
+        theseViewNodes.push(new StaticDigit({digit: digit}));
+      }
+      return theseViewNodes;
+    } else if (this.type == "operator") {
+      return [
+        new StaticOperator({
+          id: this.id,
+          value: this.value,
+          depth: this.depth
+        })
+      ];
+    } else if (this.type == "answer") {
+      var staticDigits = [];
 
-  Node.prototype.toBufferContent = function(nodeId) {
+      if (this.displayStaticValue) {
+        var digitArray = this.splitDigits();
+        for (var i = 0; i < digitArray.length; i++) {
+          var digit = digitArray[i];
+          staticDigits.push(new StaticDigit({digit: digit}));
+        }
+      }
+      return [
+        new StaticAnswer({
+          id: this.id,
+          staticDigits: staticDigits
+        })
+      ];
+    } else {
+      console.log("Node of type %s Could not produce view nodes\n", this.type);
+    }
+  },
+
+  shouldParenthesize: function(node) {
+    if (this.type == "operator" && node.type == "operator") {
+      if (this.value == "*" && node.value == "+") {
+        return true;
+      }
+    }
+    return false;
+  },
+  
+  parenthesizeViewNodes: function(viewNodes) {
+    if (viewNodes.length == 1 && (viewNodes[0] instanceof NumberEditor)) {
+      var numberEditor = viewNodes[0];
+      numberEditor.parenthesizeBuffer();
+      return viewNodes;
+    }
+    viewNodes.unshift(new StaticParenthesis({value: "("}));
+    viewNodes.push(new StaticParenthesis({value: ")"}));
+    return viewNodes;
+  },
+
+  toBufferContents: function() {
+    var left = [];
+    var right = [];
+    
+    if (this.left) {
+      left = this.left.toBufferContents();
+      if (this.shouldParenthesize(this.left)) {
+        left = this.parenthesizeViewNodes(left);
+      }
+    }
+    if (this.right) {
+      right = this.right.toBufferContents();
+      if (this.shouldParenthesize(this.right)) {
+        right = this.parenthesizeViewNodes(right);
+      }
+    }
+    var thisBufferContent = this.toBufferContent();
+    var bufferContents = left.concat(thisBufferContent, right);
+    return bufferContents;
+  },
+  
+  toEditor: function(editorState) {
+    var bufferContents = this.toBufferContents();
+    var goal = this.evaluate();
+
+    return new NumberEditor({
+      id: this.id,
+      type: (this.type == 'answer') ? 'answer' : 'subexpression',
+      buffer: bufferContents,
+      startPoint: 0,
+      endPoint: bufferContents.length,
+      selectionActive: true,
+      shiftKeyDown: editorState.shiftKeyDown,
+      goal: goal
+    });
+  },
+
+  toBufferContent: function() {
     var bufferContent = [];
-
+    
     if (this.type == 'operator') {
       bufferContent.push(
         new StaticOperator({
-          nodeId: nodeId,
+          id: this.id,
           value: this.value
         })
       );
@@ -35,97 +148,26 @@ var Node = function () {
         var digit = digitArray[i];
         bufferContent.push(
           new StaticDigit({
-            nodeId: nodeId,
             digit: parseInt(digit)})
         );
       }
+    } else if (this.type == 'answer') {
+      // Empty buffer content is enough.
+    } else {
+      console.log("Cannot get buffer contents for node of type %s\n", this.type);
     }
     return bufferContent;
-  };
-
-  Node.prototype.toBufferContents = function(nodeId) {
-    var left = [];
-    var right = [];
-
-    if (this.left) {
-      left = this.left.toBufferContents(nodeId);
+  },
+  
+  splitDigits: function() {
+    if (this.value == null || this.value == undefined) {
+      return [];
     }
-    if (this.right) {
-      right = this.right.toBufferContents(nodeId);
-    }
-    var thisBufferContent = this.toBufferContent(nodeId);
-    var bufferContents = left.concat(thisBufferContent, right);
-    return bufferContents;
-  }
-
-  Node.prototype.toNumberEditor = function() {
-    var bufferContents = this.toBufferContents();
-    var numberEditor = new NumberEditor({
-      buffer: bufferContents,
-      startPoint: 0,
-      endPoint: bufferContents.length,
-      selectionActive: true,
-      shiftKeyDown: false
-    });
-
-    return numberEditor;
-  }
-
-  Node.prototype.toViewNodes = function() {
-    if (this.state == 'editing') {
-      return [this.toNumberEditor()];
-    }
-    var left = [];
-    var right = [];
-
-    if (this.left) {
-      left = this.left.toViewNodes();
-    }
-    if (this.right) {
-      right = this.right.toViewNodes();
-    }
-    var theseViewNodes = this.toTheseViewNodes();
-    var viewNodes = left.concat(theseViewNodes, right);
-    return viewNodes;
-  };
-
-
-  Node.prototype.toTheseViewNodes = function() {
-    if (this.type == "number") {
-      var digitArray = this.splitDigits();
-      var theseViewNodes = [];
-      for (var i = 0; i < digitArray.length; i++) {
-        var digit = digitArray[i];
-        theseViewNodes.push(new StaticDigit({digit: digit}));
-      }
-      return theseViewNodes;    
-    }
-    else if (this.type == "operator") {
-      return [
-        new StaticOperator({
-          id: this.id,
-          value: this.value,
-          state: this.state
-        })
-      ];
-    } else {
-      console.log("Unrecognized node type: %s", this.type);
-    }
-  };
-
-  Node.prototype.splitDigits = function() {
     var digitArray = ("" + this.value).split("");
-    
     return digitArray;
-  };
+  },
 
-  Node.prototype.copyToBuffer = function() {
-    var copy = new Node(this);
-
-    return copy;
-  };
-
-  Node.prototype.evaluate = function() {
+  evaluate: function() {
     if (this.type == 'number') {
       return this.value;
     } else if (this.type == 'operator') {
@@ -139,29 +181,29 @@ var Node = function () {
         console.log("Unknown operator: %s\n", this.value);
         return null;
       }
+    } else if (this.type == "answer") {
+      return this.value;
     } else {
-      console.log("Unknown node type: %s\n", this.type);
+      console.log("Cannot evaluate Unknown node type: %s\n", this.type);
       return null;
     }
+  },
 
-  }
-
-  Node.prototype.getHint = function() {
+  getHint: function() {
     var description = this.describeOperation();
+
     if (description == null) {
-      console.log("Can't get Hint for node:\n");
-      console.log(this);
       return null;
     }
     if (this.left.type != "number" || this.right.type != "number") {
-      return "Try a simpler expression.";
+      return "Enter the final answer or try a simpler expression first.";
     }
-    var hint = "Try " + description.full + " " 
+    var hint = "Try " + description.full + " "
       + this.left.value + " " + description.brief + " " + this.right.value;
     return hint;
-  };
+  },
 
-  Node.prototype.describeOperation = function() {
+  describeOperation: function() {
     if (this.type != "operator") {
       console.log("Can't describe operation for node of type %s \n", this.type);
       return null;
@@ -175,12 +217,20 @@ var Node = function () {
       return {
         full: "adding",
         brief: "plus"
-      };
+      }
     } else {
       console.log("Unknown operator: %s", this.value);
       return null;
     }
-  };
+  },
 
-  return Node;
-}();
+  print: function() {
+    var text;
+    var leftText = (this.left) ? this.left.print() : "";
+    var rightText = (this.right) ? this.right.print() : "";
+
+    text = leftText + ("" + this.value) + rightText;
+    return text;
+  }
+}
+  

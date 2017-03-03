@@ -1,9 +1,13 @@
-var StaticDigit = function(options) {
+function StaticDigit(options) {
   this.digit = options.digit;
-};
+}
 
-StaticDigit.prototype.render = function() {
-  var html = '<span>' + this.digit + '</span>';
+StaticDigit.prototype = {
+  render: function(targetsById) {
+    return '<span>' + this.digit + '</span>';
+  },
 
-  return html;
+  print: function() {
+    return "" + this.digit;
+  }
 };

@@ -1158,7 +1158,6 @@
         // Moz, webkit, Opera
         if (document.addEventListener) {
           appendToBody = function() {
-            console.log("Inside hopscotch.js, the DOMContentLoaded handler, got called!!!\n");
             document.removeEventListener('DOMContentLoaded', appendToBody);
             window.removeEventListener('load', appendToBody);
 
