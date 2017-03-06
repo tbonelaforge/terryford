@@ -205,6 +205,14 @@ function hideLevels() {
   $('#level-container').hide();
 }
 
+function showHighScores() {
+  $('#high-scores').show();
+}
+
+function hideHighScores() {
+  $('#high-scores').hide();
+}
+
 function colorLevelButtons() {
   colorLevelButton('basic-expressions');
   colorLevelButton('parentheses');
@@ -364,11 +372,14 @@ function getFeedback() {
   }
 }
 
-function showFeedback() {
+function showFeedback(responseData) {
   $('#feedback').show();
   if (howManyExercisesCorrect) {
     var feedbackStatsText = getFeedbackStats();
     var feedback = getFeedback();
+    if (responseData.isNewHighScore) {
+      feeedback[0] = "You achieved a new high score!";
+    }
     $('#feedback-stats').text(feedbackStatsText);
     $('#feedback-stats').show();
     $('#feedback-cheer').text(feedback[0]);
@@ -407,9 +418,9 @@ function hideTally() {
   $('#tally').hide();
 }
 
-function giveFeedback() {
+function giveFeedback(responseData) {
   gameState = "feedback"
-  updateView();
+  updateView(responseData);
 }
 
 function startCountdown() {
@@ -424,8 +435,8 @@ function startCountdown() {
     }
     if (timeLeft <= 0) {
       stopCountdown();
-      recordScore(function() {
-        giveFeedback();
+      recordScore(function(responseData) {
+        giveFeedback(responseData);
       });
     }
     updateCountdownText();
@@ -433,7 +444,7 @@ function startCountdown() {
 }
 
 function recordScore(callback) {
-  if (!userId) {
+  if (!userId || !howManyExercisesCorrect) {
     return callback();
   }
   $.ajax({
@@ -443,7 +454,22 @@ function recordScore(callback) {
     contentType: 'application/json; charset=utf-8',
     dataType: "json",
     success: function(responseData) {
-      callback();
+      console.log("Inside the recordScore function, got responseData:\n");
+      console.log(responseData);
+      for (var i = 0; i < responseData['highScores'].length; i++) {
+        var highScore = responseData['highScores'][i];
+        var tableRow = $('#high-score' + (i + 1));
+        if (highScore['scoreId'] == responseData['newScore']['id']) {
+          responseData['isNewHighScore'] = true;
+          tableRow.find('.initials').html('<input id="enter-initials" type="text"><button id="submit-initials">SUBMIT</button>');
+          tableRow.find('.score').text(highScore['score']);
+        } else {
+          responseData['isNewHighScore'] = false;
+          tableRow.find('.initials').text(highScore['initials']);
+          tableRow.find('.score').text(highScore['score']);
+        }
+      }
+      callback(responseData);
     },
     error: function(jqXHR, textStatus, errorThrown) {
       callback();
@@ -493,7 +519,7 @@ function padLeftZeros(number) {
   return padding + number;
 }
 
-function updateView() {
+function updateView(responseData) {
   if (gameState == "title-screen") {
     $('body').attr("class", "game-title-background");
     hideGame();
@@ -502,6 +528,7 @@ function updateView() {
     showWalkthroughButton();
     hidePlayAgainButton();
     hideLevels();
+    hideHighScores();
   } else if (gameState == "selecting-level") {
     $('body').attr("class", "level-select-background");
     hideGame();
@@ -513,8 +540,9 @@ function updateView() {
     hideCountdown();
     hideTally();
     showLevels();
+    hideHighScores();
   } else if (gameState == "playing-game") {
-    $('body').removeClass();
+    $('body').attr("class", "clickable");
     showGame();
     hideTitle();
     hidePlayButton();
@@ -522,6 +550,7 @@ function updateView() {
     hideWalkthroughButton();
     hideFeedback();
     hideLevels();
+    hideHighScores();
     showTally();
     showCountdown();
     controller.root = generateNewExercise(difficulty);
@@ -530,12 +559,13 @@ function updateView() {
     startCountdown();
     updateTally();
   } else if (gameState == "feedback") {
+    $('#honey-pot').blur();
     $('body').attr("class", "level-select-background");
     controller.removeHint();
     controller.detachDocumentClickHandler();
     hideTitle();
     hideGame();
-    showFeedback();
+    showFeedback(responseData);
     if ($('#feedback-instructions').text().match(/next/)) {
       hidePlayAgainButton();
       showPlayButton();
@@ -544,6 +574,7 @@ function updateView() {
       showPlayAgainButton();
     }
     showWalkthroughButton();
+    showHighScores();
     hideLevels();
     hideTally();
     hideCountdown();
@@ -553,6 +584,7 @@ function updateView() {
 
 controller = new Controller({
   root: generateNewExercise(),
+  honeypotElement: $('#honey-pot'),
   finalAnswerCallback: function() {
     handleFinalAnswer();
   }

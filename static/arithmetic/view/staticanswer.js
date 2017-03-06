@@ -4,7 +4,7 @@ function StaticAnswer(options) {
 }
 
 StaticAnswer.prototype.render = function(targetsById) {
-  var html = '<span id="' + this.id + '" class="answer-box">';
+  var html = '<span id="' + this.id + '" class="answer-box clickable">';
   for (var i = 0; i < this.staticDigits.length; i++) {
     html += this.staticDigits[i].render();
   }

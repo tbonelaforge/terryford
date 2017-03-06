@@ -77,6 +77,15 @@ NodeGenerator.newOperator = function(value) {
   });
 };
 
+NodeGenerator.newAnswer = function(value) {
+  return new Node({
+    id: ++lastNodeId,
+    type: "answer",
+    state: "editing",
+    value: value
+  });
+};
+
 function pickRandomInteger(low, high) {
   var r = Math.random() * (high - low + 1);
   var randomInteger = low + Math.floor(r);

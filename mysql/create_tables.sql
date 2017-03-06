@@ -2,6 +2,7 @@ CREATE DATABASE IF NOT EXISTS arithmetic;
 
 CREATE TABLE IF NOT EXISTS arithmetic.user (
        id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+       initials CHAR(3),
        created_date DATETIME
 );
 

@@ -196,7 +196,7 @@ Node.prototype = {
       return null;
     }
     if (this.left.type != "number" || this.right.type != "number") {
-      return "Enter the final answer or try a simpler expression first.";
+      return "Try a simpler expression first.";
     }
     var hint = "Try " + description.full + " "
       + this.left.value + " " + description.brief + " " + this.right.value;

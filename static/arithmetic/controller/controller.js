@@ -1,5 +1,6 @@
 function Controller(options) {
   this.root = options.root;
+  this.honeypotElement = options.honeypotElement;
   this.targets = options.targets;
   this.targetsById = options.targetsById;
   this.targetIndexesById = options.targetIndexesById;
@@ -16,6 +17,9 @@ function Controller(options) {
   this.shouldListenForEditorEvents = extractOption(options.shouldListenForEditorEvents, true);
   this.shouldFlashCursor = extractOption(options.shouldFlashCursor, true);
   this.shouldFocusCurrentTarget = extractOption(options.shouldFocusCurrentTarget, true);
+  if (this.shouldAttachKeyboardHandlers) {
+    this.attachKeyboardHandlers();
+  }
 }
 Controller.prototype = {
   initializeTargets: function() {
@@ -64,9 +68,6 @@ Controller.prototype = {
     
     $('#math-container').html(view);
     this.viewNodes = viewNodes;
-    if (this.shouldAttachKeyboardHandlers) {
-      this.attachKeyboardHandlers();
-    }
     this.attachClickHandlers();
     if (this.shouldListenForEditorEvents) {
       this.listenForEditorEvents();
@@ -109,7 +110,8 @@ Controller.prototype = {
     if (!currentTarget) {
       return;
     }
-    $('#' + currentTarget.id).focus();
+    $('#' + currentTarget.id).addClass('focused');
+    $('#honey-pot').focus();
   },
 
   showNextTarget: function() {
@@ -166,15 +168,9 @@ Controller.prototype = {
   },
 
   attachKeyboardHandlers: function() {
-    if (this.currentTargetIndex < 0) {
-      return;
-    }
-    var editorElement = this.getEditorElement();
-    var numberEditor = this.findNumberEditor();
-
-    editorElement.keypress(this.onKeyPress(numberEditor));
-    editorElement.keydown(this.onKeyDown(numberEditor));
-    editorElement.keyup(this.onKeyUp(numberEditor));
+    this.honeypotElement.keypress(this.onKeyPress());
+    this.honeypotElement.keydown(this.onKeyDown());
+    this.honeypotElement.keyup(this.onKeyUp());
   },
 
   attachClickHandlers: function() {
@@ -188,9 +184,6 @@ Controller.prototype = {
   },
 
   attachEditorClickHandler: function() {
-    if (this.editorClickHandler) {
-      return;
-    }
     var self = this;
     var editorElement = self.getEditorElement();
 
@@ -199,6 +192,7 @@ Controller.prototype = {
     }
     var clickHandler = function(event) {
       util.stopPropagation(event);
+      $('#honey-pot').focus();
       if (self.getHintState() == 'none') {
         return;
       }
@@ -235,14 +229,26 @@ Controller.prototype = {
         self.handleClickOutside();
       }
     };
+    var touchstartHandler = function(event) {
+      console.log("Inside touchstartHandler, got called and event is:\n", event);
+      if (event.target.nodeName.match(/BODY/i)) {
+        clickHandler(event);
+      }
+    };
     $(document).click(clickHandler);
+    $(document).on('touchstart', touchstartHandler);
     self.documentClickHandler = clickHandler;
+    self.touchstartHandler = touchstartHandler;
   },
 
   detachDocumentClickHandler: function() {
     if (this.documentClickHandler) {
       $(document).off("click", this.documentClickHandler);
       this.documentClickHandler = null;
+    }
+    if (this.touchstartHandler) {
+      $(document).off("touchstart", this.touchstartHandler);
+      this.touchstartHandler = null;
     }
   },
 
@@ -264,10 +270,14 @@ Controller.prototype = {
     });
   },
 
-  onKeyPress: function(editor) {
+  onKeyPress: function() {
     var self = this;
 
     return function(event) {
+      if (self.currentTargetIndex < 0) {
+        return;
+      }
+      var editor = self.findNumberEditor();
       var digit = self.extractDigit(event);
 
       if (digit != null) {
@@ -283,10 +293,15 @@ Controller.prototype = {
     };
   },
 
-  onKeyDown: function(editor) {
+  onKeyDown: function() {
     var self = this;
 
     return function(event) {
+      if (self.currentTargetIndex < 0) {
+        return;
+      }
+      var editor = self.findNumberEditor();
+      
       if (event.keyCode == 39) { // Right Arrow
         editor.handleRightArrow();
       } else if (event.keyCode == 37) { // Left Arrow
@@ -306,10 +321,15 @@ Controller.prototype = {
     };
   },
 
-  onKeyUp: function(editor) {
+  onKeyUp: function() {
     var self = this;
 
     return function(event) {
+      if (self.currentTargetIndex < 0) {
+        return;
+      }
+      var editor = self.findNumberEditor();
+      
       if (event.keyCode == 16) { // Shift
         editor.handleShiftKeyUp();
       } else { // unrecognized key up
@@ -427,6 +447,7 @@ Controller.prototype = {
     var hintString = expressionRoot.getHint();
     var hintTitle = (self.findNumberEditor().buffer.length) ? 'Incorrect' : 'Hint';
     var hintPosition = self.computeHintPosition();
+    var editorElement = self.getEditorElement();
     var callback;
 
     if (self.targets.length > 1) { // subexpression available
@@ -440,7 +461,7 @@ Controller.prototype = {
         self.updateView();
       }
     }
-
+    editorElement.removeClass('focused');
     jAlert(hintString, hintTitle, callback);
     $('#popup_container').keydown(function(event) {
       noopTabHandler(event);
@@ -455,9 +476,11 @@ Controller.prototype = {
 
   showSubexpressionHint: function() {
     var self = this;
-    var targetNode = this.getCurrentTarget();
+    var targetNode = self.getCurrentTarget();
     var hintString = targetNode.getHint();
+    var editorElement = self.getEditorElement();
 
+    editorElement.removeClass('focused');
     jAlert(hintString, 'Incorrect', function() {
       self.updateView();
     });
@@ -477,9 +500,15 @@ Controller.prototype = {
 
   computeHintPosition: function() {
     var targetNode = this.getCurrentTarget();
-    var position = this.computeCalloutPosition(targetNode);
+    var position;
 
-    position.top = position.top + 8; // Account for the alert border + margin
+    if (targetNode.type == 'answer') {
+      position = this.computeCalloutPosition({id: "math-container"});
+      position.top = position.top + 40;
+    } else {
+      position = this.computeCalloutPosition(targetNode);
+      position.top = position.top + 8; // Account for the alert border + margin
+    }
     return position;
   },
 
@@ -544,6 +573,9 @@ Controller.prototype = {
     }
     if (this.documentClickHandler) {
       $(document).off("click", this.documentClickHandler);
+    }
+    if (this.touchstartHandler) {
+      $(document).off("touchstart", this.touchstartHandler);
     }
   }
 };

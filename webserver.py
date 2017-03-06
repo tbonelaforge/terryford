@@ -85,6 +85,34 @@ def retrieve_new_score(new_score_id):
     return new_score
 
 
+get_high_scores_template = ("SELECT us.id as score_id, initials, u.id as user_id, score "
+                            "FROM user_score us JOIN user u "
+                            "ON us.user_id = u.id "
+                            "WHERE level = '%s' "
+                            "ORDER BY us.score desc, us.created_date desc "
+                            "LIMIT 5")
+
+
+def retrieve_high_scores(level):
+    if (arithmetic_db_cxn is None):
+      return None
+    get_high_scores_statement = get_high_scores_template % (level)
+    cursor = arithmetic_db_cxn.cursor()
+    cursor.execute(get_high_scores_statement)
+    high_scores = []
+    for (score_id, initials, user_id, score) in cursor:
+      if initials is None:
+        initials = "USER" + str(user_id)
+      high_scores.append({
+        "scoreId": score_id,
+        "initials": initials,
+        "score": score
+      })
+    return high_scores;
+    
+  
+  
+
 @app.route('/arithmetic/scores/<user_id>', methods=['POST'])
 def arithmetic_scores(user_id):
     if request.method == "POST":
@@ -94,7 +122,12 @@ def arithmetic_scores(user_id):
           resp = Response('"Could not insert score"', status=503, mimetype='application/json')
           return resp
         new_score = retrieve_new_score(new_score_id)
-        resp = Response(json.dumps(new_score), status=200, mimetype='application/json')
+        high_scores = retrieve_high_scores(json_object['level'])
+        response_data = {
+          "newScore": new_score,
+          "highScores": high_scores
+        }
+        resp = Response(json.dumps(response_data), status=200, mimetype='application/json')
         return resp
 
 

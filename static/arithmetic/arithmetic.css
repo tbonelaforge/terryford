@@ -1,9 +1,22 @@
+html {
+    height: 100%;
+}
+
+body {
+    height: 100%;
+}
+
 #title {
     font-family: 'VT323', monospace;
 }
 
 #level-select-title {
     font-family: 'VT323', monospace;
+}
+
+#feedback #level-header {
+    color: darkorchid;
+    text-shadow: 1px 1px 0 black;
 }
 
 #title h2 {
@@ -25,6 +38,31 @@
     font-size: 40px;
     color: midnightblue;
     margin: 20px;
+}
+
+#high-scores {
+    font-family: 'VT323', monospace;
+}
+
+#high-scores p {
+    font-size: 40px;
+    color: darkorchid;
+    margin-top: 20px;
+    margin-bottom: 5px;
+    text-shadow: 1px 1px 0 black;
+}
+
+#high-scores table {
+    margin-left: auto;
+    margin-right: auto;
+}
+
+#high-scores td {
+    color: darkorchid;
+    font-size: 30px;
+    padding-left: 20px;
+    padding-right: 20px;
+    text-shadow: 1px 1px 0 black;
 }
 
 .game-title-background {
@@ -69,16 +107,31 @@
 
 .answer {
     display: inline-block;
-    min-width: 5em;
+    min-width: 3em;
     border: 1px solid grey;
     padding: 3px;
 }
 
+.focused {
+    outline: rgb(91, 157, 217) solid 5px;
+}
+
+.subexpression {
+}
+
 .answer-box {
     display: inline-block;
-    min-width: 5em;
+    min-width: 3em;
     border: 1px solid grey;
     padding: 3px;
+}
+
+#honey-pot-container {
+    overflow: hidden;
+    position: absolute;
+    width: 5em;
+    left: 50%;
+    top: -150%;
 }
 
 #check-mark {

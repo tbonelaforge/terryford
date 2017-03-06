@@ -158,11 +158,7 @@ function generateExpertExercise() {
 
 function createExercise(expressionNode) {
   var value = expressionNode.evaluate();
-  var answerNode = new Node({
-    type: "answer",
-    state: "editing",
-    value: value
-  });
+  var answerNode = NodeGenerator.newAnswer(value);
   var exerciseNode = NodeGenerator.newOperator('=');
 
   exerciseNode.left = expressionNode;
