@@ -145,16 +145,33 @@ function generateMixedExercise2() {
 }
 
 function generateExpertExercise() {
-  var operatorType = Math.random() < 0.5 ? "*" : "+";
-  var g = new NodeGenerator({
-    desiredOperatorType: operatorType,
-    desiredDepth: 3
-  });
-  var expertExpression = g.generate();
+  var expertExpression;
 
+  while (true) {
+    var operatorType = Math.random() < 0.5 ? "*" : "+";
+    var g = new NodeGenerator({
+      desiredOperatorType: operatorType,
+      desiredDepth: 3
+    });
+    var expertExpression = g.generate();
+    var opCount = countOperators(expertExpression);
+    if (opCount <= 5) {
+      break;
+    }
+  }
   return createExercise(expertExpression);
 }
 
+
+function countOperators(expression) {
+  if (!expression) {
+    return 0;
+  }
+  var left = countOperators(expression.left);
+  var right = countOperators(expression.right);
+  var center = (expression.type == 'operator') ? 1 : 0;
+  return left + right + center;
+}
 
 function createExercise(expressionNode) {
   var value = expressionNode.evaluate();

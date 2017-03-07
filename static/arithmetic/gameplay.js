@@ -2,7 +2,7 @@
 
 
 var controller;
-var gameState = 'title-screen';
+var gameState = {value: 'title-screen'};
 var countdown = null;
 var timeLeft = 60;
 var timeGiven;
@@ -33,12 +33,10 @@ var difficulties = {
 };
 
 var scales = {
-  'addition': [9, 16, 23],
-  'multiplication': [10, 20, 29],
-  'basic-expressions': [10, 20, 29],
-  'parentheses': [10, 20, 29],
-  'mixed-expressions1': [10, 20, 29],
-  'mixed-expressions2': [9, 18, 25],
+  'basic-expressions': [9, 18, 26],
+  'parentheses': [9, 18, 26],
+  'mixed-expressions1': [9, 19, 29],
+  'mixed-expressions2': [9, 19, 29],
   'expert': [5, 9, 12]
 };
 
@@ -51,6 +49,8 @@ var levelsCompleted = {
 };
 
 var newlyCompleted = null;
+
+var highScores;
 
 function initializeLevelsCompleted() {
   var rawCookie = util.getCookie('arithmetic');
@@ -118,7 +118,7 @@ function handleFinalAnswer() {
 
 function handlePlayClick(event) {
   event.stopPropagation();
-  gameState = 'selecting-level';
+  gameState.value = 'selecting-level';
   howManyExercisesCorrect = 0;
   updateView();
 }
@@ -147,7 +147,7 @@ function attachClickHandlers() {
     util.stopPropagation(event);
     var levelButtonId = event.target.getAttribute('id');
     difficulty = difficulties[levelButtonId];
-    gameState = 'playing-game';
+    gameState.value = 'playing-game';
     updateView();
   });
 }
@@ -359,7 +359,7 @@ function getFeedback() {
   var p = howManyExercisesCorrect;
 
   if (p >= 1 && p <= scales[difficulty][0]) {
-    return ["You can do mental arithmetic!", "You need " + (scales[difficulty][1] + 1) + " exercises in " + timeGiven + " to pass this level..."];
+    return ["You can do mental arithmetic!", "You need " + (scales[difficulty][0] + 1) + " exercises in " + timeGiven + " to pass this level..."];
   } else if (p >= scales[difficulty][0] + 1 && p <= scales[difficulty][1]) {
     recordLevelCompleted();
     return ["You are pretty good!", "Try the next level?"];
@@ -378,7 +378,7 @@ function showFeedback(responseData) {
     var feedbackStatsText = getFeedbackStats();
     var feedback = getFeedback();
     if (responseData.isNewHighScore) {
-      feeedback[0] = "You achieved a new high score!";
+      feedback[0] = "You achieved a new high score!";
     }
     $('#feedback-stats').text(feedbackStatsText);
     $('#feedback-stats').show();
@@ -419,7 +419,6 @@ function hideTally() {
 }
 
 function giveFeedback(responseData) {
-  gameState = "feedback"
   updateView(responseData);
 }
 
@@ -434,6 +433,7 @@ function startCountdown() {
       timeLeft -= 1;
     }
     if (timeLeft <= 0) {
+      gameState.value = "feedback";
       stopCountdown();
       recordScore(function(responseData) {
         giveFeedback(responseData);
@@ -444,7 +444,13 @@ function startCountdown() {
 }
 
 function recordScore(callback) {
+/*
   if (!userId || !howManyExercisesCorrect) {
+    return callback();
+  }
+*/
+  if (!userId) {
+    renderLevelHeader();
     return callback();
   }
   $.ajax({
@@ -454,21 +460,8 @@ function recordScore(callback) {
     contentType: 'application/json; charset=utf-8',
     dataType: "json",
     success: function(responseData) {
-      console.log("Inside the recordScore function, got responseData:\n");
-      console.log(responseData);
-      for (var i = 0; i < responseData['highScores'].length; i++) {
-        var highScore = responseData['highScores'][i];
-        var tableRow = $('#high-score' + (i + 1));
-        if (highScore['scoreId'] == responseData['newScore']['id']) {
-          responseData['isNewHighScore'] = true;
-          tableRow.find('.initials').html('<input id="enter-initials" type="text"><button id="submit-initials">SUBMIT</button>');
-          tableRow.find('.score').text(highScore['score']);
-        } else {
-          responseData['isNewHighScore'] = false;
-          tableRow.find('.initials').text(highScore['initials']);
-          tableRow.find('.score').text(highScore['score']);
-        }
-      }
+      highScores = responseData['highScores'];
+      responseData.isNewHighScore = renderHighScores(responseData['newScore']);
       callback(responseData);
     },
     error: function(jqXHR, textStatus, errorThrown) {
@@ -476,6 +469,88 @@ function recordScore(callback) {
     },
 
   });
+}
+
+function getLevelHeaderText() {
+  if (difficulty == 'basic-expressions') {
+    return "Basic Expressions"
+  } else if (difficulty == 'parentheses') {
+    return "Parentheses";
+  } else if (difficulty == 'mixed-expressions1') {
+    return "Mixed Expressions 1";
+  } else if (difficulty == 'mixed-expressions2') {
+    return "Mixed Expressions 2";
+  } else if (difficulty == 'expert') {
+    return "Expert";
+  } else {
+    return difficulty;
+  }
+}
+
+function renderLevelHeader() {
+  var levelHeaderText = getLevelHeaderText();
+  $('#level-header').text(levelHeaderText);
+}
+
+function renderHighScores(newScore) {
+  if (!newScore) {
+    newScore = {};
+  }
+  var isNewHighScore = false;
+  renderLevelHeader();
+  var tableElement = $('#high-scores-table');
+  tableElement.empty();
+  for (var i = 0; i < highScores.length; i++) {
+    var highScore = highScores[i];
+    var tableRow = $('<tr id="high-score"' + (i + 1) + '></tr>');
+    var usernameCell = $('<td class="username"></td>');
+    var scoreCell = $('<td class="score"></td>');
+    if (highScore['scoreId'] == newScore['id']) {
+      isNewHighScore = true;
+      usernameCell.append($('<input id="enter-username" type="text" placeholder="YOUR NAME HERE"><button id="submit-username" onClick="submitUsername()">SUBMIT</button>'));
+      scoreCell.text(highScore['score']);
+    } else {
+      usernameCell.text(highScore['username']);
+      scoreCell.text(highScore['score']);
+    }
+    tableRow.append(usernameCell);
+    tableRow.append(scoreCell);
+    tableElement.append(tableRow);
+  }
+  return isNewHighScore;
+}
+
+function submitUsername() {
+  var username = $('#enter-username').val();
+
+  if (!username.length) {
+    renderHighScores();
+  }
+  $.ajax({
+    type: "POST",
+    url: '/arithmetic/username/' + userId,
+    data: JSON.stringify({username: username}),
+    contentType: 'application/json; charset=utf-8',
+    dataType: "json",
+    success: function(responseData) {
+      replaceUsername(responseData['user']['id'], responseData['user']['username']);
+      renderHighScores();
+    },
+    error: function(jqXHR, textStatus, errorThrown) {
+      console.log("There was an error submitting the username:\n");
+      console.log(jqXHR, textStatus, errorThrown);
+      renderHighScores();
+    }
+  });
+}
+
+function replaceUsername(userId, username) {
+  for (var i = 0; i < highScores.length; i++) {
+    var highScore = highScores[i];
+    if (highScore['userId'] == userId) {
+      highScore['username'] = username;
+    }
+  }
 }
 
 function updateCountdownText() {
@@ -520,7 +595,7 @@ function padLeftZeros(number) {
 }
 
 function updateView(responseData) {
-  if (gameState == "title-screen") {
+  if (gameState.value == "title-screen") {
     $('body').attr("class", "game-title-background");
     hideGame();
     showTitle();
@@ -529,7 +604,7 @@ function updateView(responseData) {
     hidePlayAgainButton();
     hideLevels();
     hideHighScores();
-  } else if (gameState == "selecting-level") {
+  } else if (gameState.value == "selecting-level") {
     $('body').attr("class", "level-select-background");
     hideGame();
     hideTitle();
@@ -541,7 +616,7 @@ function updateView(responseData) {
     hideTally();
     showLevels();
     hideHighScores();
-  } else if (gameState == "playing-game") {
+  } else if (gameState.value == "playing-game") {
     $('body').attr("class", "clickable");
     showGame();
     hideTitle();
@@ -558,7 +633,7 @@ function updateView(responseData) {
     controller.updateView();
     startCountdown();
     updateTally();
-  } else if (gameState == "feedback") {
+  } else if (gameState.value == "feedback") {
     $('#honey-pot').blur();
     $('body').attr("class", "level-select-background");
     controller.removeHint();
@@ -585,6 +660,7 @@ function updateView(responseData) {
 controller = new Controller({
   root: generateNewExercise(),
   honeypotElement: $('#honey-pot'),
+  gameState: gameState,
   finalAnswerCallback: function() {
     handleFinalAnswer();
   }

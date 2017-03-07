@@ -8,6 +8,9 @@ from datetime import datetime
 import mysql.connector
 from mysql.connector import errorcode
 import ConfigParser
+import sys
+print sys.path
+from arithmetic import user_service
 
 app = Flask(__name__)
 
@@ -85,7 +88,7 @@ def retrieve_new_score(new_score_id):
     return new_score
 
 
-get_high_scores_template = ("SELECT us.id as score_id, initials, u.id as user_id, score "
+get_high_scores_template = ("SELECT us.id as score_id, username, u.id as user_id, score "
                             "FROM user_score us JOIN user u "
                             "ON us.user_id = u.id "
                             "WHERE level = '%s' "
@@ -100,12 +103,13 @@ def retrieve_high_scores(level):
     cursor = arithmetic_db_cxn.cursor()
     cursor.execute(get_high_scores_statement)
     high_scores = []
-    for (score_id, initials, user_id, score) in cursor:
-      if initials is None:
-        initials = "USER" + str(user_id)
+    for (score_id, username, user_id, score) in cursor:
+      if username is None:
+        username = "USER" + str(user_id)
       high_scores.append({
+        "userId": user_id,
         "scoreId": score_id,
-        "initials": initials,
+        "username": username,
         "score": score
       })
     return high_scores;
@@ -130,6 +134,29 @@ def arithmetic_scores(user_id):
         resp = Response(json.dumps(response_data), status=200, mimetype='application/json')
         return resp
 
+
+@app.route('/arithmetic/username/<user_id>', methods=['POST'])
+def arithmetic_username(user_id):
+  if request.method == "POST":
+    json_object = request.json
+    if (not 'username' in json_object) or (len(json_object['username']) == 0):
+      error_data = {"error": "payload did not contain 'username'"}
+      resp = Response(json.dumps(error_data), status=400, mimetype='application/json')
+      return resp
+    username = json_object['username']
+    updated_user = user_service.update_username(
+      arithmetic_db_cxn,
+      user_id,
+      username
+    )
+    if updated_user is None:
+          resp = Response('"Could not update user"', status=503, mimetype='application/json')
+          return resp
+    response_data = {
+      "user": updated_user
+    }
+    resp = Response(json.dumps(response_data), status=200, mimetype='application/json')
+    return resp
 
 @app.route('/arithmetic/walkthrough')
 def walkthrough():

@@ -1,6 +1,7 @@
 function Controller(options) {
   this.root = options.root;
   this.honeypotElement = options.honeypotElement;
+  this.gameState = options.gameState;
   this.targets = options.targets;
   this.targetsById = options.targetsById;
   this.targetIndexesById = options.targetIndexesById;
@@ -112,6 +113,10 @@ Controller.prototype = {
     }
     $('#' + currentTarget.id).addClass('focused');
     $('#honey-pot').focus();
+    if (this.hacketyhack) {
+      clearTimeout(this.hacketyhack);
+      this.hacketyhack = null;
+    }
   },
 
   showNextTarget: function() {
@@ -168,9 +173,30 @@ Controller.prototype = {
   },
 
   attachKeyboardHandlers: function() {
-    this.honeypotElement.keypress(this.onKeyPress());
-    this.honeypotElement.keydown(this.onKeyDown());
-    this.honeypotElement.keyup(this.onKeyUp());
+    var self = this;
+    self.honeypotKeypress = self.onKeyPress();
+    self.honeypotElement.keypress(self.honeypotKeypress);
+    self.honeypotKeydown = self.onKeyDown();
+    self.honeypotElement.keydown(self.honeypotKeydown);
+    self.honeypotKeyup = self.onKeyUp();
+    self.honeypotElement.keyup(self.honeypotKeyup);
+
+    self.honeypotFocusout = function(event) {
+      setTimeout(function() {
+        if (document.activeElement.getAttribute('id') != 'honey-pot') {
+          var currentTarget = self.getCurrentTarget();
+          if (currentTarget) {
+            if (currentTarget.type == "answer") {
+              self.showAnswerHint();
+            }
+            if (currentTarget.type == "operator") {
+              self.showSubexpressionHint();
+            }
+          }
+        }
+      }, 500);
+    };
+    self.honeypotElement.focusout(self.honeypotFocusout);
   },
 
   attachClickHandlers: function() {
@@ -193,6 +219,10 @@ Controller.prototype = {
     var clickHandler = function(event) {
       util.stopPropagation(event);
       $('#honey-pot').focus();
+      if (self.hacketyhack) {
+        clearTimeout(self.hacketyhack);
+        self.hacketyhack = null;
+      }
       if (self.getHintState() == 'none') {
         return;
       }
@@ -230,7 +260,6 @@ Controller.prototype = {
       }
     };
     var touchstartHandler = function(event) {
-      console.log("Inside touchstartHandler, got called and event is:\n", event);
       if (event.target.nodeName.match(/BODY/i)) {
         clickHandler(event);
       }
@@ -333,6 +362,18 @@ Controller.prototype = {
       if (event.keyCode == 16) { // Shift
         editor.handleShiftKeyUp();
       } else { // unrecognized key up
+        if (navigator.userAgent.match(/Android/i)) {
+          var inputValue = this.value;
+          var charKeyCode = event.keyCode || event.which;
+          if (charKeyCode == 0 || charKeyCode == 229) {
+            charKeyCode = inputValue.charCodeAt(inputValue.length - 1);
+            var digit = self.extractDigit({keyCode: charKeyCode});
+            if (digit != null) {
+              editor.handleDigitInsert(digit);
+              self.updateEditorView(editor);
+            }
+          }
+        }
         return;
       }
     };
@@ -442,6 +483,15 @@ Controller.prototype = {
   },
 
   showAnswerHint: function() {
+    if (!this.findNumberEditor()) {
+      return;
+    }
+    if (this.getHintState() != 'none') {
+      return;
+    }
+    if (this.gameState.value != 'playing-game') {
+      return;
+    }
     var self = this;
     var expressionRoot = self.root.left;
     var hintString = expressionRoot.getHint();
@@ -453,16 +503,19 @@ Controller.prototype = {
     if (self.targets.length > 1) { // subexpression available
       self.addCalloutArrows();
       callback = function() {
+        $('body').addClass("clickable");
         self.removeCalloutArrows();
         self.updateView();
       }
     } else {
       callback = function() {
+        $('body').addClass("clickable");
         self.updateView();
       }
     }
     editorElement.removeClass('focused');
     jAlert(hintString, hintTitle, callback);
+    $('body').removeClass("clickable");
     $('#popup_container').keydown(function(event) {
       noopTabHandler(event);
     });
@@ -475,15 +528,21 @@ Controller.prototype = {
   },
 
   showSubexpressionHint: function() {
+    if (this.gameState.value != 'playing-game') {
+      return;
+    }
     var self = this;
     var targetNode = self.getCurrentTarget();
     var hintString = targetNode.getHint();
     var editorElement = self.getEditorElement();
 
     editorElement.removeClass('focused');
+    
     jAlert(hintString, 'Incorrect', function() {
+      $('body').addClass('clickable');
       self.updateView();
     });
+    $('body').removeClass('clickable');
     $('#popup_container').keydown(function(event) {
       noopTabHandler(event);
     });
@@ -576,6 +635,20 @@ Controller.prototype = {
     }
     if (this.touchstartHandler) {
       $(document).off("touchstart", this.touchstartHandler);
+    }
+    if (this.honeypotElement) {
+      if (this.honeypotKeypress) {
+        this.honeypotElement.off('keypress', this.honeypotKeypress);
+      }
+      if (this.honeypotKeydown) {
+        this.honeypotElement.off('keydown', this.honeypotKeydown);
+      }
+      if (this.honeypotKeyup) {
+        this.honeypotElement.off('keyup', this.honeypotKeyup);
+      }
+      if (this.honeypotFocusout) {
+        this.honeypotElement.off('focusout', this.honeypotFocusout);
+      }
     }
   }
 };

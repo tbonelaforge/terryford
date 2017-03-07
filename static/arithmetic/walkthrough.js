@@ -1,6 +1,5 @@
 var controller;
 var exercise;
-var tour;
 
 var timeLeft = 60;
 
@@ -52,6 +51,7 @@ function startWalkthrough() {
   hideFeedback();
   controller = new Controller({
     root: exercise,
+    honeypotElement: $('#honey-pot'),
     shouldAttachKeyboardHandlers: false,
     shouldAttachEditorClickHandler: false,
     shouldAttachDocumentClickHandler: false,
@@ -66,42 +66,14 @@ function startWalkthrough() {
   hopscotch.startTour(tour1);
 }
 
-function startWalkthrough2() {
-  hideTitle();
-  hidePlayButton();
-  hidePlayAgainButton();
-  hideFeedback();
-  controller = new Controller({
-    root: exercise,
-    shouldAttachKeyboardHandlers: false,
-    shouldAttachEditorClickHandler: false,
-    shouldAttachDocumentClickHandler: false,
-    shouldListenForEditorEvents: false,
-    shouldFlashCursor: false,
-    shouldFocusCurrentTarget: false
-  });
-  controller.initializeTargets();
-  controller.updateView();
-  $('.answer').click(function() {
-    $(document).off("keydown", temporaryTabHandler);
-    hopscotch.endTour();
-  });
-  $('#3').click(function() {
-    newTarget = 3;
-    $(document).off("keydown", temporaryTabHandler);
-    hopscotch.endTour(); // Will trigger updateView
-  });
-  $(document).keydown(temporaryTabHandler);
-  $('#next-button').click(function() {
-    window.location = "arithmetic";
-  });
-  hopscotch.startTour(tour1);
-}
-
 function readyForFinalAnswer() {
   controller.cleanUp();
   controller = new Controller({
     root: controller.root,
+    honeypotElement: $('#honey-pot'),
+    gameState: {
+      value: 'playing-game'
+    },
     finalAnswerCallback: function() {
       handleFinalAnswer();
     }
@@ -112,8 +84,13 @@ function readyForFinalAnswer() {
 
 function subexpressionReplaced() {
   controller.cleanUp();
+  $('#honey-pot').blur();
   controller = new Controller({
     root: controller.root,
+    honeypotElement: $('#honey-pot'),
+    gameState: {
+      value: 'playing-game'
+    },
     shouldAttachKeyboardHandlers: false,
     shouldAttachEditorClickHandler: false,
     shouldAttachDocumentClickHandler: false,
@@ -132,12 +109,11 @@ function subexpressionReplaced() {
     calloutMgr.removeCallout('final-step');
     readyForFinalAnswer();
   });
-//  hopscotch.startTour(tour2);
 
   calloutMgr.createCallout({
     id: 'final-step',
     title: 'Simplified',
-    content: 'The part you selected has been simplified. Now the only thing left to do is to enter the final answer!',
+    content: 'Now click the answer box and enter the final result of 23!',
     target: '.mq-binary-operator',
     placement: 'bottom',
     xOffset: 20,
@@ -151,6 +127,10 @@ function startPlaying() {
   controller.cleanUp();
   controller = new Controller({
     root: exercise,
+    honeypotElement: $('#honey-pot'),
+    gameState: {
+      value: 'playing-game'
+    },
     subexpressionReplacedCallback: function() {
       subexpressionReplaced();
     },
@@ -210,23 +190,24 @@ node6.right = node7;
 exercise = node6;
 
 var tour1 = {
-  id: "walkthrough2",
+  id: "walkthrough1",
   steps: [
     {
       title: "Arithmetic Exercise",
-      content: "The objective is to complete as many of these exercises as you can in the given time.",
+      content: "Complete as many of these as you can in the given time!",
       target: ".mq-math-mode",
-      placement: "left",
-      arrowOffset: 0,
-      yOffset: -15,
+      placement: "bottom",
+      arrowOffset: 142,
+      yOffset: 0,
       xOffset: -20
     },
     {
       title: "Subexpression",
-      content: "Focus on a subexpression by using the Tab key, or by clicking on the operator. Then use the keyboard to type the result of the subexpression.",
+      content: "You can work step-by-step! Use the Tab key, or click on the operator to focus on a subexpression. Then type the result of 16.",
       target: "3",
       placement: "bottom",
-      xOffset: -12,
+      xOffset: -60,
+      arrowOffset: 57,
       onShow: function() {
         $('#3').addClass('clickable');
         $('#3').click(function() {
@@ -242,9 +223,12 @@ var tour1 = {
     },
     {
       title: "Answer Box",
-      content: "If you can do the exercise in your head, click the answer box and use the keyboard to enter the final answer.",
+      content: "If you know the answer, click the box and enter the final result. You can always go back to the subexpression if you need to!",
       target: ".answer",
       placement: "bottom",
+      xOffset: -120,
+      yOffset: 7,
+      arrowOffset: 145,
       onShow: function() {
         $('.answer').click(function() {
           $(document).off("keydown", temporaryTabHandler);
@@ -256,28 +240,8 @@ var tour1 = {
   showCloseButton: false,
   onEnd: function() {
     $(document).off("keydown", temporaryTabHandler);
-    setTimeout(function() {
-      startPlaying();
-    });
+    startPlaying();
   }
 };
-
-var tour2 = {
-  id: "walkthrough2b",
-  steps: [
-    {
-      title: "Simplified",
-      content: "The part you selected has been simplified. Now the only thing left to do is to enter the final answer!",
-      target: ".mq-binary-operator",
-      placement: "bottom",
-      xOffset: 20
-    }
-  ],
-  stepNums: [" "],
-  showCloseButton: false,
-  onEnd: function() {
-    readyForFinalAnswer();
-  }
-}
 
 startWalkthrough();
