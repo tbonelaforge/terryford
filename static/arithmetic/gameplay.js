@@ -507,10 +507,15 @@ function renderHighScores(newScore) {
     var scoreCell = $('<td class="score"></td>');
     if (highScore['scoreId'] == newScore['id']) {
       isNewHighScore = true;
-      usernameCell.append($('<input id="enter-username" type="text" placeholder="YOUR NAME HERE"><button id="submit-username" onClick="submitUsername()">SUBMIT</button>'));
+      var placeholder = highScore['username']
+      if (!placeholder) {
+        placeholder = "YOUR NAME HERE";
+      }
+      usernameCell.append($('<input id="enter-username" type="text" placeholder="' + placeholder + '"><button id="submit-username" onClick="submitUsername()">SUBMIT</button>'));
       scoreCell.text(highScore['score']);
     } else {
-      usernameCell.text(highScore['username']);
+      var usernameDisplay = highScore['username'] || "USER" + highScore['userId'];
+      usernameCell.text(usernameDisplay);
       scoreCell.text(highScore['score']);
     }
     tableRow.append(usernameCell);
@@ -524,7 +529,7 @@ function submitUsername() {
   var username = $('#enter-username').val();
 
   if (!username.length) {
-    renderHighScores();
+    return renderHighScores();
   }
   $.ajax({
     type: "POST",

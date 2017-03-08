@@ -88,13 +88,12 @@ def retrieve_new_score(new_score_id):
     return new_score
 
 
-get_high_scores_template = ("SELECT us.id as score_id, username, u.id as user_id, score "
-                            "FROM user_score us JOIN user u "
-                            "ON us.user_id = u.id "
-                            "WHERE level = '%s' "
-                            "ORDER BY us.score desc, us.created_date desc "
+get_high_scores_template = ("SELECT MAX(us.id) as score_id, u.username, u.id as user_id, us.score as score "
+                            "FROM user_score us join user u on us.user_id = u.id "
+                            "WHERE us.level = '%s' "
+                            "GROUP BY user_id, score "
+                            "ORDER BY score desc, score_id desc "
                             "LIMIT 5")
-
 
 def retrieve_high_scores(level):
     if (arithmetic_db_cxn is None):
@@ -104,8 +103,6 @@ def retrieve_high_scores(level):
     cursor.execute(get_high_scores_statement)
     high_scores = []
     for (score_id, username, user_id, score) in cursor:
-      if username is None:
-        username = "USER" + str(user_id)
       high_scores.append({
         "userId": user_id,
         "scoreId": score_id,
