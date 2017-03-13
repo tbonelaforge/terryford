@@ -1,20 +1,21 @@
 import React from 'react';
 import PointDisc from './pointdisc.js';
 
+var pi = 3.14159;
+
 var thoughtImages = [
-  ["/static/img/thoughtbubble/arithmetic-bubble-icon.jpg", "/arithmetic"],
-  ["/static/img/thoughtbubble/patent-bubble-icon.jpg", "https://www.google.com/patents/US20120189991"],
-  ["/static/img/thoughtbubble/masters-project-bubble-icon.jpg", "/static/downloads/resonant-drum.pdf"],
-  ["/static/img/thoughtbubble/jinac-bubble-icon.jpg", "https://www.npmjs.com/package/jinac"],
-  ["/static/img/thoughtbubble/lambda-bubble-icon.jpg", "https://github.com/tbonelaforge/lambda"],
-  ["/static/img/thoughtbubble/drumming-bubble-icon.jpg", "https://www.youtube.com/watch?v=CIJ404XS_ro&list=PLvdKmKn1O1yboC7iuCPmwgzFSoixHHTMC"],
+  ["/static/img/thoughtbubble/arithmetic-bubble-icon.jpg", "/arithmetic", pi / 3],
+  ["/static/img/thoughtbubble/patent-bubble-icon.jpg", "https://www.google.com/patents/US20120189991", 5 * pi / 3],
+  ["/static/img/thoughtbubble/masters-project-bubble-icon.jpg", "/static/downloads/resonant-drum.pdf", 2 * pi / 3],
+  ["/static/img/thoughtbubble/jinac-bubble-icon.jpg", "https://www.npmjs.com/package/jinac", 4 * pi / 3],
+  ["/static/img/thoughtbubble/lambda-bubble-icon.jpg", "https://github.com/tbonelaforge/lambda", pi],
+  ["/static/img/thoughtbubble/drumming-bubble-icon.jpg", "https://www.youtube.com/watch?v=CIJ404XS_ro&list=PLvdKmKn1O1yboC7iuCPmwgzFSoixHHTMC", 0],
   ["/static/img/thoughtbubble/thought-bubble-icon.jpg", "https://github.com/tbonelaforge/terryford"]
 ];
 
 class ThoughtBubble extends React.Component {
   constructor(props) {
     super(props);
-//    this.howManyPoints = 6;
     this.howManyPoints = thoughtImages.length;
     this.x = parseInt(props.x);
     this.y = parseInt(props.y);
@@ -52,22 +53,34 @@ class ThoughtBubble extends React.Component {
   }
 
   randomPointDatum(i) {
-    let theta = this.randomAngle(); // (0, 2pi)
-    let r = this.randomRadius(this.radius) + this.pointRadius;
-    let x = r * Math.cos(theta);
-    let y = r * Math.sin(theta);
-    return {
-      x: this.x + x,
-      y: this.y + y,
-      imageUrl: thoughtImages[i][0],
-      linkUrl: thoughtImages[i][1]
+    let angle = thoughtImages[i][2];
+    if (angle != null) {
+      let theta = this.randomAngle(angle);
+      let r = this.randomRadius(this.radius) + this.pointRadius;
+      let x = r * Math.cos(theta);
+      let y = -r * Math.sin(theta);
+      return {
+        x: this.x + x,
+        y: this.y + y,
+        imageUrl: thoughtImages[i][0],
+        linkUrl: thoughtImages[i][1]
+      }
+    } else {
+      let x = (Math.random() - 0.5) * 1.5 * this.pointRadius;
+      let y = (Math.random() - 0.5) * 1.5 * this.pointRadius;
+      return {
+        x: this.x + x,
+        y: this.y + y,
+        imageUrl: thoughtImages[i][0],
+        linkUrl: thoughtImages[i][1]
+      }
     }
   }
 
-  randomAngle() {
-    let d = Math.random() * 2 * 3.14159;
+  randomAngle(angle) {
+    let t = angle + (Math.random() - 0.5) * pi / 6;
 
-    return d;
+    return t;
   }
 
   randomRadius(radius) {

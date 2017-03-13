@@ -9461,7 +9461,9 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-var thoughtImages = [["/static/img/thoughtbubble/arithmetic-bubble-icon.jpg", "/arithmetic"], ["/static/img/thoughtbubble/patent-bubble-icon.jpg", "https://www.google.com/patents/US20120189991"], ["/static/img/thoughtbubble/masters-project-bubble-icon.jpg", "/static/downloads/resonant-drum.pdf"], ["/static/img/thoughtbubble/jinac-bubble-icon.jpg", "https://www.npmjs.com/package/jinac"], ["/static/img/thoughtbubble/lambda-bubble-icon.jpg", "https://github.com/tbonelaforge/lambda"], ["/static/img/thoughtbubble/drumming-bubble-icon.jpg", "https://www.youtube.com/watch?v=CIJ404XS_ro&list=PLvdKmKn1O1yboC7iuCPmwgzFSoixHHTMC"], ["/static/img/thoughtbubble/thought-bubble-icon.jpg", "https://github.com/tbonelaforge/terryford"]];
+var pi = 3.14159;
+
+var thoughtImages = [["/static/img/thoughtbubble/arithmetic-bubble-icon.jpg", "/arithmetic", pi / 3], ["/static/img/thoughtbubble/patent-bubble-icon.jpg", "https://www.google.com/patents/US20120189991", 5 * pi / 3], ["/static/img/thoughtbubble/masters-project-bubble-icon.jpg", "/static/downloads/resonant-drum.pdf", 2 * pi / 3], ["/static/img/thoughtbubble/jinac-bubble-icon.jpg", "https://www.npmjs.com/package/jinac", 4 * pi / 3], ["/static/img/thoughtbubble/lambda-bubble-icon.jpg", "https://github.com/tbonelaforge/lambda", pi], ["/static/img/thoughtbubble/drumming-bubble-icon.jpg", "https://www.youtube.com/watch?v=CIJ404XS_ro&list=PLvdKmKn1O1yboC7iuCPmwgzFSoixHHTMC", 0], ["/static/img/thoughtbubble/thought-bubble-icon.jpg", "https://github.com/tbonelaforge/terryford"]];
 
 var ThoughtBubble = function (_React$Component) {
   _inherits(ThoughtBubble, _React$Component);
@@ -9469,7 +9471,6 @@ var ThoughtBubble = function (_React$Component) {
   function ThoughtBubble(props) {
     _classCallCheck(this, ThoughtBubble);
 
-    //    this.howManyPoints = 6;
     var _this = _possibleConstructorReturn(this, (ThoughtBubble.__proto__ || Object.getPrototypeOf(ThoughtBubble)).call(this, props));
 
     _this.howManyPoints = thoughtImages.length;
@@ -9512,23 +9513,35 @@ var ThoughtBubble = function (_React$Component) {
   }, {
     key: 'randomPointDatum',
     value: function randomPointDatum(i) {
-      var theta = this.randomAngle(); // (0, 2pi)
-      var r = this.randomRadius(this.radius) + this.pointRadius;
-      var x = r * Math.cos(theta);
-      var y = r * Math.sin(theta);
-      return {
-        x: this.x + x,
-        y: this.y + y,
-        imageUrl: thoughtImages[i][0],
-        linkUrl: thoughtImages[i][1]
-      };
+      var angle = thoughtImages[i][2];
+      if (angle != null) {
+        var theta = this.randomAngle(angle);
+        var r = this.randomRadius(this.radius) + this.pointRadius;
+        var x = r * Math.cos(theta);
+        var y = -r * Math.sin(theta);
+        return {
+          x: this.x + x,
+          y: this.y + y,
+          imageUrl: thoughtImages[i][0],
+          linkUrl: thoughtImages[i][1]
+        };
+      } else {
+        var _x = (Math.random() - 0.5) * 1.5 * this.pointRadius;
+        var _y = (Math.random() - 0.5) * 1.5 * this.pointRadius;
+        return {
+          x: this.x + _x,
+          y: this.y + _y,
+          imageUrl: thoughtImages[i][0],
+          linkUrl: thoughtImages[i][1]
+        };
+      }
     }
   }, {
     key: 'randomAngle',
-    value: function randomAngle() {
-      var d = Math.random() * 2 * 3.14159;
+    value: function randomAngle(angle) {
+      var t = angle + (Math.random() - 0.5) * pi / 6;
 
-      return d;
+      return t;
     }
   }, {
     key: 'randomRadius',
