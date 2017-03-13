@@ -7,7 +7,8 @@ var thoughtImages = [
   ["/static/img/thoughtbubble/masters-project-bubble-icon.jpg", "/static/downloads/resonant-drum.pdf"],
   ["/static/img/thoughtbubble/jinac-bubble-icon.jpg", "https://www.npmjs.com/package/jinac"],
   ["/static/img/thoughtbubble/lambda-bubble-icon.jpg", "https://github.com/tbonelaforge/lambda"],
-  ["/static/img/thoughtbubble/drumming-bubble-icon.jpg", "https://www.youtube.com/watch?v=CIJ404XS_ro&list=PLvdKmKn1O1yboC7iuCPmwgzFSoixHHTMC"]
+  ["/static/img/thoughtbubble/drumming-bubble-icon.jpg", "https://www.youtube.com/watch?v=CIJ404XS_ro&list=PLvdKmKn1O1yboC7iuCPmwgzFSoixHHTMC"],
+  ["/static/img/thoughtbubble/thought-bubble-icon.jpg", "https://github.com/tbonelaforge/terryford"]
 ];
 
 class ThoughtBubble extends React.Component {

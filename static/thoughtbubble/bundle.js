@@ -9461,7 +9461,7 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-var thoughtImages = [["/static/img/thoughtbubble/arithmetic-bubble-icon.jpg", "/arithmetic"], ["/static/img/thoughtbubble/patent-bubble-icon.jpg", "https://www.google.com/patents/US20120189991"], ["/static/img/thoughtbubble/masters-project-bubble-icon.jpg", "/static/downloads/resonant-drum.pdf"], ["/static/img/thoughtbubble/jinac-bubble-icon.jpg", "https://www.npmjs.com/package/jinac"], ["/static/img/thoughtbubble/lambda-bubble-icon.jpg", "https://github.com/tbonelaforge/lambda"], ["/static/img/thoughtbubble/drumming-bubble-icon.jpg", "https://www.youtube.com/watch?v=CIJ404XS_ro&list=PLvdKmKn1O1yboC7iuCPmwgzFSoixHHTMC"]];
+var thoughtImages = [["/static/img/thoughtbubble/arithmetic-bubble-icon.jpg", "/arithmetic"], ["/static/img/thoughtbubble/patent-bubble-icon.jpg", "https://www.google.com/patents/US20120189991"], ["/static/img/thoughtbubble/masters-project-bubble-icon.jpg", "/static/downloads/resonant-drum.pdf"], ["/static/img/thoughtbubble/jinac-bubble-icon.jpg", "https://www.npmjs.com/package/jinac"], ["/static/img/thoughtbubble/lambda-bubble-icon.jpg", "https://github.com/tbonelaforge/lambda"], ["/static/img/thoughtbubble/drumming-bubble-icon.jpg", "https://www.youtube.com/watch?v=CIJ404XS_ro&list=PLvdKmKn1O1yboC7iuCPmwgzFSoixHHTMC"], ["/static/img/thoughtbubble/thought-bubble-icon.jpg", "https://github.com/tbonelaforge/terryford"]];
 
 var ThoughtBubble = function (_React$Component) {
   _inherits(ThoughtBubble, _React$Component);
@@ -9754,7 +9754,7 @@ var PointDisc = function (_React$Component) {
 }(_react2.default.Component);
 
 var neighborC = 110;
-var wallC = 50;
+var wallC = 70;
 
 function magnitude(p) {
   return Math.sqrt(Math.pow(p.x, 2) + Math.pow(p.y, 2));

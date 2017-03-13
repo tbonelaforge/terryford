@@ -157,7 +157,7 @@ class PointDisc extends React.Component {
 }
 
 var neighborC = 110;
-var wallC = 50;
+var wallC = 70;
 
 function magnitude(p) {
   return Math.sqrt(Math.pow(p.x, 2) + Math.pow(p.y, 2));
