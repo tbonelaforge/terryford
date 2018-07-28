@@ -5,12 +5,14 @@ from flask import request
 from flask import json
 from flask import Response
 from datetime import datetime
+from time import time
 import mysql.connector
 from mysql.connector import errorcode
 import ConfigParser
 import sys
 print sys.path
 from arithmetic import user_service
+from subprocess import Popen, PIPE
 
 app = Flask(__name__)
 
@@ -165,6 +167,35 @@ def walkthrough():
 add_user_template = ("INSERT INTO arithmetic.user "
                      "(created_date) "
                      "VALUES ('%s')")
+
+
+@app.route('/lambda/evaluate', methods=['POST'])
+def evaluate():
+    print "Inside the evaluate request handler, the request object looks like:"
+    print request
+    print "Which has dir:"
+    print dir(request)
+    print "The request has headers..."
+    print request.headers
+    json_object = request.get_json()
+    print "got json_object:"
+    print json_object
+    print "got the code:"
+    code = json_object.get('code')
+    print code
+    filename = 'lambda_request_{}.input'.format(str(time()))
+    print "I'd like to open the file:"
+    print filename
+    file_object  = open(filename, 'w')
+    file_object.write(str(code))
+    file_object.close()
+    print "I think I wrote the temp file!"
+    lambda_popen = Popen(['lambda', filename], stdout=PIPE, stderr=PIPE)
+    (stdout_data, stderr_data) = lambda_popen.communicate()
+    resp = Response(json.dumps({'result': stdout_data}), status=200, mimetype='application/json')
+    return resp
+ 
+
 
 def create_new_user():
     if arithmetic_db_cxn is None:
