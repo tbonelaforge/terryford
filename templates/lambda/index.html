@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Lambda Calculus Interpreter</title>
+    <meta name="description" content="Online interpreter for a programming language based on the untyped lambda calculus.">
+  </head>
+  <body>
+    <h1>Lambda Interpreter</h1>
+    <textarea rows="10" cols="80" id="program-text">
+two:((plus,one),one);
+one:\f\x(f,x);
+plus:\m\n\f\x((m,f),((n,f),x));</textarea>
+    <button type="button" id="run-button">Run</button>
+    <div id="evaluation-area">
+
+    </div>
+    <script type="text/javascript" src="static/vendor/jquery-3.1.1.min.js"></script>
+    <script type="text/javascript" src="/static/lambda/lambda.js"></script>
+  </body>
+</html>

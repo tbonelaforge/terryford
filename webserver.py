@@ -10,7 +10,6 @@ import mysql.connector
 from mysql.connector import errorcode
 import ConfigParser
 import sys
-print sys.path
 from arithmetic import user_service
 from subprocess import Popen, PIPE
 
@@ -39,6 +38,7 @@ except mysql.connector.Error as err:
 def home_page():
     html = render_template('homepage/index.html')
     return html
+
 
 @app.route('/arithmetic')
 def arithmetic_start_page():
@@ -169,28 +169,25 @@ add_user_template = ("INSERT INTO arithmetic.user "
                      "VALUES ('%s')")
 
 
+@app.route('/lambda')
+def lamda_homepage():
+  html = render_template("lambda/index.html")
+  return html
+
+
 @app.route('/lambda/evaluate', methods=['POST'])
 def evaluate():
-    print "Inside the evaluate request handler, the request object looks like:"
-    print request
-    print "Which has dir:"
-    print dir(request)
-    print "The request has headers..."
-    print request.headers
     json_object = request.get_json()
-    print "got json_object:"
-    print json_object
-    print "got the code:"
     code = json_object.get('code')
-    print code
     filename = 'lambda_request_{}.input'.format(str(time()))
-    print "I'd like to open the file:"
-    print filename
     file_object  = open(filename, 'w')
     file_object.write(str(code))
     file_object.close()
-    print "I think I wrote the temp file!"
-    lambda_popen = Popen(['lambda', filename], stdout=PIPE, stderr=PIPE)
+    try:
+      lambda_popen = Popen(['./lambda', filename], stdout=PIPE, stderr=PIPE)
+    except Exception as e:
+      print "Got an exception on constructing the popen..."
+      print e
     (stdout_data, stderr_data) = lambda_popen.communicate()
     resp = Response(json.dumps({'result': stdout_data}), status=200, mimetype='application/json')
     return resp
