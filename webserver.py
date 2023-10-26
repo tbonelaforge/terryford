@@ -9,7 +9,7 @@ import mysql.connector
 from mysql.connector import errorcode
 import ConfigParser
 import sys
-print sys.path
+
 from arithmetic import user_service
 
 app = Flask(__name__)
