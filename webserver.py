@@ -4,11 +4,13 @@ from flask import make_response
 from flask import request
 from flask import json
 from flask import Response
-from datetime import datetime
+from datetime import datetime, timedelta
 import mysql.connector
 from mysql.connector import errorcode
-import ConfigParser
+from configparser import ConfigParser
 import sys
+import time
+
 
 from arithmetic import user_service
 
@@ -16,9 +18,14 @@ app = Flask(__name__)
 
 arithmetic_db_cxn = None
 
+
+HIGH_SCORE_TTL_SECONDS = 7 * 24 * 60 * 60
+# HIGH_SCORE_TTL_SECONDS = 120
+
 try:
-  Config = ConfigParser.ConfigParser()
+  Config = ConfigParser()
   Config.read("webserver_config.ini")
+  
   arithmetic_db_cxn =  mysql.connector.connect(
       user=Config.get('database', 'user'),
       password=Config.get('database', 'password'),
@@ -90,15 +97,25 @@ def retrieve_new_score(new_score_id):
 
 get_high_scores_template = ("SELECT MAX(us.id) as score_id, u.username, u.id as user_id, us.score as score "
                             "FROM user_score us join user u on us.user_id = u.id "
-                            "WHERE us.level = '%s' "
+                            "WHERE us.level = '%s' AND us.created_date > '%s'"
                             "GROUP BY user_id, score "
                             "ORDER BY score desc, score_id desc "
                             "LIMIT 5")
 
+
+
+
 def retrieve_high_scores(level):
     if (arithmetic_db_cxn is None):
       return None
-    get_high_scores_statement = get_high_scores_template % (level)
+    now = datetime.now()
+    
+    past_cutoff = now - timedelta(seconds=HIGH_SCORE_TTL_SECONDS)
+    
+    past_cutoff_string = past_cutoff.strftime('%Y-%m-%d %H:%M:%S')
+    
+    get_high_scores_statement = get_high_scores_template % (level, past_cutoff_string)
+    
     cursor = arithmetic_db_cxn.cursor()
     cursor.execute(get_high_scores_statement)
     high_scores = []
